@@ -249,7 +249,7 @@ func getAlbums() Albums {
 
 	var albums Albums
 	xml.Unmarshal(body, &albums)
-	for i, _ := range albums.Entry {
+	for i := range albums.Entry {
 		albums.Entry[i].SetLink()
 	}
 	return albums
