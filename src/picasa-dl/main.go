@@ -8,12 +8,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"text/template"
 	"time"
 )
 
 const userId = "djmchl@gmail.com"
+
+var maxProcesses = runtime.NumCPU()
 
 /* haml -f html5 -t ugly
 !!! 5
@@ -264,6 +267,7 @@ func getAlbums() Albums {
 }
 
 func main() {
+	runtime.GOMAXPROCS(maxProcesses)
 	albums := getAlbums()
 	err := writeIndex(&albums)
 	if err != nil {
