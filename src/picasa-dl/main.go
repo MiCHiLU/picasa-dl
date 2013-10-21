@@ -227,7 +227,7 @@ func writeImage(url string, filename string, timestamp int64) (err error) {
 	}()
 	fi, err := os.Stat(filename)
 	if err == nil {
-		if fi.ModTime().Sub(time.Unix(timestamp/1000, 0)) > 0 {
+		if fi.Size() > 0 && fi.ModTime().Sub(time.Unix(timestamp/1000, 0)) > 0 {
 			return
 		}
 	}
