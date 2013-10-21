@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 	"text/template"
+	"time"
 )
 
 const userId = "djmchl@gmail.com"
@@ -112,7 +113,8 @@ type Entry struct {
 	GphotoId  string `xml:"id"`
 	LinkList  []Link `xml:"link"`
 	Link      string
-	Numphotos int `xml:"numphotos"`
+	Numphotos int   `xml:"numphotos"`
+	Timestamp int64 `xml:"timestamp"`
 }
 
 func (e *Entry) SetLink() {
@@ -140,7 +142,7 @@ type Photo struct {
 	Updated   string  `xml:"updated"`
 	Title     string  `xml:"title"`
 	Content   Content `xml:"content"`
-	Timestamp string  `xml:"timestamp"`
+	Timestamp int64   `xml:"timestamp"`
 }
 
 type Content struct {
@@ -191,7 +193,7 @@ func writeAlbum(album *Album) error {
 			log.Print(err)
 			continue
 		}
-		writeImage(album.Photo[i].Content.MediaUrlBase+"w197-h134-p/", dirname+"/"+album.Photo[i].Content.Name)
+		writeImage(album.Photo[i].Content.MediaUrlBase+"w197-h134-p/", dirname+"/"+album.Photo[i].Content.Name, album.Photo[i].Timestamp)
 	}
 	t := template.Must(template.New("html").Parse(strings.Replace(html, "%v", li_photo, 1)))
 	filename := "albums/" + album.GphotoId + ".html"
@@ -208,19 +210,25 @@ func writeAlbum(album *Album) error {
 	return err
 }
 
-func writeImage(url string, filename string) (err error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Print(err)
-		return
+func writeImage(url string, filename string, timestamp int64) (err error) {
+	fi, err := os.Stat(filename)
+	if err == nil {
+		if fi.ModTime().Sub(time.Unix(timestamp/1000, 0)) > 0 {
+			return
+		}
 	}
-	defer resp.Body.Close()
 	const perm os.FileMode = 0644
 	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
 		log.Print(err)
 		return
 	}
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	defer resp.Body.Close()
 	written, err := io.Copy(f, resp.Body)
 	if err1 := f.Close(); err == nil {
 		err = err1
