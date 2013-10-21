@@ -22,7 +22,6 @@ const userId = "djmchl@gmail.com"
 %body/
 .row %v
 */
-
 const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -102,6 +101,69 @@ const li_photo = `
 {{end}}
 `
 
+type Albums struct {
+	Updated string  `xml:"updated"`
+	Entry   []Entry `xml:"entry"`
+}
+
+type Entry struct {
+	Updated   string `xml:"updated"`
+	Title     string `xml:"title"`
+	GphotoId  string `xml:"id"`
+	LinkList  []Link `xml:"link"`
+	Link      string
+	Numphotos int `xml:"numphotos"`
+}
+
+func (e *Entry) SetLink() {
+	for _, link := range e.LinkList {
+		if link.Rel == "http://schemas.google.com/g/2005#feed" {
+			e.Link = link.Href
+			e.LinkList = nil
+			return
+		}
+	}
+}
+
+type Link struct {
+	Rel  string `xml:"rel,attr"`
+	Href string `xml:"href,attr"`
+}
+
+type Album struct {
+	Updated  string  `xml:"updated"`
+	GphotoId string  `xml:"id"`
+	Photo    []Photo `xml:"entry"`
+}
+
+type Photo struct {
+	Updated   string  `xml:"updated"`
+	Title     string  `xml:"title"`
+	Content   Content `xml:"content"`
+	Timestamp string  `xml:"timestamp"`
+}
+
+type Content struct {
+	Src          string `xml:"src,attr"`
+	Name         string
+	MediaUrlBase string
+}
+
+func (c *Content) SetName() {
+	if c.Name == "" {
+		bits := strings.Split(c.Src, "/")
+		c.Name = bits[len(bits)-1]
+	}
+	return
+}
+
+func (c *Content) SetMediaUrlBase() {
+	if c.MediaUrlBase == "" {
+		c.MediaUrlBase = strings.Split(c.Src, c.Name)[0]
+	}
+	return
+}
+
 func writeIndex(albums *Albums) error {
 	t := template.Must(template.New("html").Parse(strings.Replace(html, "%v", li_album, 1)))
 	filename := "albums/index.html"
@@ -170,6 +232,29 @@ func writeImage(url string, filename string) (err error) {
 	return
 }
 
+func getAlbums() Albums {
+	resp, err := http.Get("https://picasaweb.google.com/data/feed/api/user/" + userId)
+	if err != nil {
+		log.Print(err)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+	log.Print("Got album feed")
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Print(err)
+		os.Exit(1)
+	}
+
+	var albums Albums
+	xml.Unmarshal(body, &albums)
+	for i, _ := range albums.Entry {
+		albums.Entry[i].SetLink()
+	}
+	return albums
+}
+
 func main() {
 	albums := getAlbums()
 	err := writeIndex(&albums)
@@ -200,90 +285,4 @@ func main() {
 		}
 
 	}
-}
-
-type Albums struct {
-	Updated string  `xml:"updated"`
-	Entry   []Entry `xml:"entry"`
-}
-
-type Entry struct {
-	Updated   string `xml:"updated"`
-	Title     string `xml:"title"`
-	GphotoId  string `xml:"id"`
-	LinkList  []Link `xml:"link"`
-	Link      string
-	Numphotos int `xml:"numphotos"`
-}
-
-func (e *Entry) SetLink() {
-	for _, link := range e.LinkList {
-		if link.Rel == "http://schemas.google.com/g/2005#feed" {
-			e.Link = link.Href
-			e.LinkList = nil
-			return
-		}
-	}
-}
-
-type Link struct {
-	Rel  string `xml:"rel,attr"`
-	Href string `xml:"href,attr"`
-}
-
-type Album struct {
-	Updated  string  `xml:"updated"`
-	GphotoId string  `xml:"id"`
-	Photo    []Photo `xml:"entry"`
-}
-
-type Photo struct {
-	Updated   string  `xml:"updated"`
-	Title     string  `xml:"title"`
-	Content   Content `xml:"content"`
-	Timestamp string  `xml:"timestamp"`
-}
-
-type Content struct {
-	Src          string `xml:"src,attr"`
-	Name         string
-	MediaUrlBase string
-}
-
-func (c *Content) SetName() {
-	if c.Name == "" {
-		bits := strings.Split(c.Src, "/")
-		c.Name = bits[len(bits)-1]
-	}
-	return
-}
-
-func (c *Content) SetMediaUrlBase() {
-	if c.MediaUrlBase == "" {
-		c.MediaUrlBase = strings.Split(c.Src, c.Name)[0]
-	}
-	return
-}
-
-func getAlbums() Albums {
-	resp, err := http.Get("https://picasaweb.google.com/data/feed/api/user/" + userId)
-	if err != nil {
-		log.Print(err)
-		os.Exit(1)
-	}
-	defer resp.Body.Close()
-	log.Print("Got album feed")
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Print(err)
-		os.Exit(1)
-	}
-
-	var albums Albums
-	xml.Unmarshal(body, &albums)
-	for i, _ := range albums.Entry {
-		albums.Entry[i].SetLink()
-	}
-	return albums
 }
