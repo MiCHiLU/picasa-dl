@@ -1,0 +1,17 @@
+activate
+albums
+bin
+pkg
+src/*.com
+
+syntax: glob
+
+*.css
+*.html
+*.js
+*.so
+*.sw?
+.DS_Store
+tags
+
+syntax: regexp
