@@ -100,15 +100,6 @@ const li_photo = `
 {{end}}
 `
 
-func entering(s string) string {
-	log.Println("entering:", s)
-	return s
-}
-
-func leaving(s string) {
-	log.Println("leaving:", s)
-}
-
 func writeIndex(albums *Albums) error {
 	t := template.Must(template.New("html").Parse(strings.Replace(html, "%v", li_album, 1)))
 	filename := "albums/index.html"
