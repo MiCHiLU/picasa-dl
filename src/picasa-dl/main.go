@@ -12,6 +12,8 @@ import (
 	"text/template"
 )
 
+const userId = "djmchl@gmail.com"
+
 /* haml -f html5 -t ugly
 !!! 5
 %html/
@@ -264,7 +266,7 @@ func (c *Content) SetMediaUrlBase() {
 }
 
 func getAlbums() Albums {
-	resp, err := http.Get("https://picasaweb.google.com/data/feed/api/user/djmchl@gmail.com")
+	resp, err := http.Get("https://picasaweb.google.com/data/feed/api/user/" + userId)
 	if err != nil {
 		log.Print(err)
 		os.Exit(1)
