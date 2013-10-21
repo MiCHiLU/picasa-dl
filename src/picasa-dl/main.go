@@ -16,7 +16,10 @@ import (
 
 const userId = "djmchl@gmail.com"
 
-var maxProcesses = runtime.NumCPU()
+var (
+	maxProcesses = runtime.NumCPU()
+	semaphore    = make(chan int, maxProcesses*2)
+)
 
 /* haml -f html5 -t ugly
 !!! 5
@@ -186,6 +189,10 @@ func writeIndex(albums *Albums) error {
 }
 
 func writeAlbum(album *Album) error {
+	semaphore <- 1
+	defer func() {
+		<-semaphore
+	}()
 	var perm os.FileMode = 0755
 	for i := range album.Photo {
 		album.Photo[i].Content.SetName()
@@ -214,6 +221,10 @@ func writeAlbum(album *Album) error {
 }
 
 func writeImage(url string, filename string, timestamp int64) (err error) {
+	semaphore <- 1
+	defer func() {
+		<-semaphore
+	}()
 	fi, err := os.Stat(filename)
 	if err == nil {
 		if fi.ModTime().Sub(time.Unix(timestamp/1000, 0)) > 0 {
