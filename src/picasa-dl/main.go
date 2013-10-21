@@ -193,7 +193,7 @@ func writeAlbum(album *Album) error {
 			log.Print(err)
 			continue
 		}
-		writeImage(album.Photo[i].Content.MediaUrlBase+"w197-h134-p/", dirname+"/"+album.Photo[i].Content.Name, album.Photo[i].Timestamp)
+		go writeImage(album.Photo[i].Content.MediaUrlBase+"w197-h134-p/", dirname+"/"+album.Photo[i].Content.Name, album.Photo[i].Timestamp)
 	}
 	t := template.Must(template.New("html").Parse(strings.Replace(html, "%v", li_photo, 1)))
 	filename := "albums/" + album.GphotoId + ".html"
@@ -287,10 +287,6 @@ func main() {
 
 		var album Album
 		xml.Unmarshal(body, &album)
-		err = writeAlbum(&album)
-		if err != nil {
-			log.Print(err)
-		}
-
+		go writeAlbum(&album)
 	}
 }
