@@ -46,7 +46,8 @@ func GoroutineChannel(f func()) (receiver chan int) {
 }
 
 func addWorkers(f func()) {
-	monitorWorkers <- GoroutineChannel(f)
+	//monitorWorkers <- GoroutineChannel(f)
+	f()
 }
 
 func _monitorWorkers() {
