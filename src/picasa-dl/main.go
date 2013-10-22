@@ -277,20 +277,31 @@ func writeImage(url string, filename string, updated string) (err error) {
 	return
 }
 
-func getAlbums() Albums {
-	resp, err := http.Get("https://picasaweb.google.com/data/feed/api/user/" + userId)
+func HTTPGET(url string) (body []byte, err error) {
+	resp, err := http.Get(url)
 	if err != nil {
-		log.Print(err)
-		os.Exit(1)
+		return
+	}
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
 	}
 	defer resp.Body.Close()
-	log.Print("Got album feed")
+	return
+}
 
-	body, err := ioutil.ReadAll(resp.Body)
+func FeedGet(userId string) (body []byte, err error) {
+	body, err = HTTPGET("https://picasaweb.google.com/data/feed/api/user/" + userId)
+	return
+}
+
+func getAlbums(userId string) Albums {
+	body, err := FeedGet(userId)
 	if err != nil {
 		log.Print(err)
 		os.Exit(1)
 	}
+	log.Print("Got album feed")
 
 	var albums Albums
 	xml.Unmarshal(body, &albums)
@@ -310,7 +321,7 @@ func getAlbums() Albums {
 
 func main() {
 	runtime.GOMAXPROCS(maxProcesses)
-	albums := getAlbums()
+	albums := getAlbums(userId)
 	err := writeIndex(&albums)
 	if err != nil {
 		log.Print(err)
@@ -318,14 +329,7 @@ func main() {
 	}
 
 	for _, entry := range albums.Entry {
-		resp, err := http.Get(entry.Link)
-		if err != nil {
-			log.Print(err)
-			continue
-		}
-		defer resp.Body.Close()
-
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := HTTPGET(entry.Link)
 		if err != nil {
 			log.Print(err)
 			continue
