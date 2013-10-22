@@ -18,12 +18,28 @@ const userId = "djmchl@gmail.com"
 const permDir os.FileMode = 0755
 const permFile os.FileMode = 0644
 
-var workers [](chan int)
 
 var (
 	maxProcesses = runtime.NumCPU()
 	semaphore    = make(chan int, maxProcesses*2)
+	workers      [](chan int)
 )
+
+func addWorkers(f func()) {
+	workers = append(workers, GoroutineChannel(f))
+}
+
+func waitWorkers() {
+	for {
+		_, ok := <-workers[0]
+		if !ok {
+			if len(workers) <= 1 {
+				return
+			}
+			workers = workers[1:]
+		}
+	}
+}
 
 /* haml -f html5 -t ugly
 !!! 5
@@ -357,15 +373,7 @@ func main() {
 
 		var album Album
 		xml.Unmarshal(body, &album)
-		workers = append(workers, GoroutineChannel(func() { writeAlbum(&album) }))
+		addWorkers(func() { writeAlbum(&album) })
 	}
-	for {
-		_, ok := <-workers[0]
-		if !ok {
-			if len(workers) <= 1 {
-				return
-			}
-			workers = workers[1:]
-		}
-	}
+	waitWorkers()
 }
