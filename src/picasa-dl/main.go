@@ -187,6 +187,16 @@ func (c *Content) SetMediaUrlBase() {
 	return
 }
 
+var debug = debugT(false)
+
+type debugT bool
+
+func (d debugT) Println(args ...interface{}) {
+	if d {
+		log.Println(args...)
+	}
+}
+
 func writeIndex(albums *Albums) error {
 	t := template.Must(template.New("html").Parse(strings.Replace(html, "%v", li_album, 1)))
 	filename := "albums/index.html"
