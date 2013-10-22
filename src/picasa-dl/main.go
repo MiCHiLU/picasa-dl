@@ -29,9 +29,10 @@ func (d debugT) Println(args ...interface{}) {
 }
 
 var (
-	maxProcesses = runtime.NumCPU()
-	semaphore    = make(chan int, maxProcesses*2)
-	workers      [](chan int)
+	maxProcesses   = runtime.NumCPU()
+	semaphore      = make(chan int, maxProcesses*2)
+	workers        [](chan int)
+	monitorWorkers = make(chan (chan int))
 )
 
 func GoroutineChannel(f func()) (receiver chan int) {
@@ -44,7 +45,14 @@ func GoroutineChannel(f func()) (receiver chan int) {
 }
 
 func addWorkers(f func()) {
-	workers = append(workers, GoroutineChannel(f))
+	monitorWorkers <- GoroutineChannel(f)
+}
+
+func _monitorWorkers() {
+	for {
+		worker := <-monitorWorkers
+		workers = append(workers, worker)
+	}
 }
 
 func waitWorkers() {
@@ -356,6 +364,7 @@ func getAlbums(userId string) Albums {
 
 func main() {
 	runtime.GOMAXPROCS(maxProcesses)
+	go _monitorWorkers()
 	albums := getAlbums(userId)
 	err := writeIndex(&albums)
 	if err != nil {
