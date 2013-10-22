@@ -235,7 +235,10 @@ func (c *Content) SetMediaUrlBase() {
 func writeIndex(albums *Albums) error {
 	t := template.Must(template.New("html").Parse(strings.Replace(html, "%v", li_album, 1)))
 	filename := "albums/index.html"
-	f, err := OpenFile(filename)
+	f, closer, err := OpenFile(filename)
+	defer func() {
+		closer <- 0
+	}()
 	if err != nil {
 		return err
 	}
@@ -273,7 +276,10 @@ func writeAlbum(album *Album) error {
 	}
 	t := template.Must(template.New("html").Funcs(funcMap).Parse(strings.Replace(html, "%v", li_photo, 1)))
 	filename := "albums/" + album.GphotoId + ".html"
-	f, err := OpenFile(filename)
+	f, closer, err := OpenFile(filename)
+	defer func() {
+		closer <- 0
+	}()
 	if err != nil {
 		return err
 	}
@@ -295,7 +301,10 @@ func writeImage(url string, filename string, updated string) (err error) {
 			}
 		}
 	}
-	f, err := OpenFile(filename)
+	f, closer, err := OpenFile(filename)
+	defer func() {
+		closer <- 0
+	}()
 	if err != nil {
 		log.Print(err)
 		return
@@ -317,9 +326,12 @@ func writeImage(url string, filename string, updated string) (err error) {
 	return
 }
 
-func OpenFile(filename string) (file *os.File, err error) {
+func OpenFile(filename string) (file *os.File, closer chan int, err error) {
 	semaphoreFile <- 0
-	defer func() {
+	closer = make(chan int)
+	go func() {
+		<-closer
+		close(closer)
 		<-semaphoreFile
 	}()
 	file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
