@@ -203,7 +203,7 @@ func writeIndex(albums *Albums) error {
 }
 
 func writeAlbum(album *Album) error {
-	semaphore <- 1
+	semaphore <- 0
 	defer func() {
 		<-semaphore
 	}()
@@ -242,7 +242,7 @@ func writeAlbum(album *Album) error {
 }
 
 func writeImage(url string, filename string, updated string) (err error) {
-	semaphore <- 1
+	semaphore <- 0
 	defer func() {
 		<-semaphore
 	}()
