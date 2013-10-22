@@ -119,8 +119,9 @@ type Entry struct {
 	GphotoId  string `xml:"id"`
 	LinkList  []Link `xml:"link"`
 	Link      string
-	Numphotos int   `xml:"numphotos"`
-	Timestamp int64 `xml:"timestamp"`
+	Numphotos int       `xml:"numphotos"`
+	Timestamp int64     `xml:"timestamp"`
+	Thumbnail Thumbnail `xml:"group>content"`
 }
 
 func (e *Entry) SetLink() {
@@ -138,8 +139,19 @@ type Link struct {
 	Href string `xml:"href,attr"`
 }
 
+type Thumbnail struct {
+	Url          string `xml:"url,attr"`
+	MediaUrlBase string
+}
+
+func (t *Thumbnail) SetMediaUrlBase() {
+	if t.MediaUrlBase == "" {
+		t.MediaUrlBase = t.Url[:strings.LastIndex(t.Url, "/")]
+	}
+}
+
 type Album struct {
-	Updated  string  `xml:"updated"`
+	//Updated  string  `xml:"updated"`
 	GphotoId string  `xml:"id"`
 	Photo    []Photo `xml:"entry"`
 }
@@ -281,10 +293,19 @@ func getAlbums() Albums {
 		os.Exit(1)
 	}
 
+	var perm os.FileMode = 0755
 	var albums Albums
 	xml.Unmarshal(body, &albums)
 	for i := range albums.Entry {
 		albums.Entry[i].SetLink()
+		albums.Entry[i].Thumbnail.SetMediaUrlBase()
+		dirname := "albums/img/index"
+		err := os.MkdirAll(dirname, perm)
+		if err != nil {
+			log.Print(err)
+			continue
+		}
+		go writeImage(albums.Entry[i].Thumbnail.MediaUrlBase+"/w197-h134-p/", dirname+"/"+albums.Entry[i].GphotoId+".jpg", albums.Entry[i].Updated)
 	}
 	return albums
 }
