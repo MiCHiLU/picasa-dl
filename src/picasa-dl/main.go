@@ -18,6 +18,8 @@ const userId = "djmchl@gmail.com"
 const permDir os.FileMode = 0755
 const permFile os.FileMode = 0644
 
+var workers [](chan int)
+
 var (
 	maxProcesses = runtime.NumCPU()
 	semaphore    = make(chan int, maxProcesses*2)
@@ -197,7 +199,7 @@ func (d debugT) Println(args ...interface{}) {
 	}
 }
 
-func GoroutineChannel(f func()) (receiver chan<- int) {
+func GoroutineChannel(f func()) (receiver chan int) {
 	receiver = make(chan int)
 	go func() {
 		defer close(receiver)
@@ -355,6 +357,15 @@ func main() {
 
 		var album Album
 		xml.Unmarshal(body, &album)
-		go writeAlbum(&album)
+		workers = append(workers, GoroutineChannel(func() { writeAlbum(&album) }))
+	}
+	for {
+		_, ok := <-workers[0]
+		if !ok {
+			if len(workers) <= 1 {
+				return
+			}
+			workers = workers[1:]
+		}
 	}
 }
