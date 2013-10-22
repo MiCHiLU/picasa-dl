@@ -79,7 +79,7 @@ const li_album = `
   %img(src="img/{{$GphotoId}}/{{.Content.Name}}")
   %h6(style="margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;")
    {{.Title}}
-   %span.muted {{.Timestamp}}
+   %span.muted {{timeFormat .TimestampTime "2006-01-02T15:04:05"}}
   %p.muted(style="font-size: 11px; margin-top: -10px; margin-bottom: -5px;")
    %a(href="{{.Content.MediaUrlBase}}s2048/{{.Content.Name}}") Max
    %a(href="{{.Content.MediaUrlBase}}s640/{{.Content.Name}}") s640
@@ -95,7 +95,7 @@ const li_photo = `
 <img src='img/{{$GphotoId}}/{{.Content.Name}}'>
 <h6 style='margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;'>
 {{.Title}}
-<span class='muted'>{{.Timestamp}}</span>
+<span class='muted'>{{timeFormat .TimestampTime "2006-01-02T15:04:05"}}</span>
 </h6>
 <p class='muted' style='font-size: 11px; margin-top: -10px; margin-bottom: -5px;'>
 <a href='{{.Content.MediaUrlBase}}s2048/{{.Content.Name}}'>Max</a>
@@ -145,10 +145,11 @@ type Album struct {
 }
 
 type Photo struct {
-	Updated   string  `xml:"updated"`
-	Title     string  `xml:"title"`
-	Content   Content `xml:"content"`
-	Timestamp int64   `xml:"timestamp"`
+	Updated       string  `xml:"updated"`
+	Title         string  `xml:"title"`
+	Content       Content `xml:"content"`
+	Timestamp     int64   `xml:"timestamp"`
+	TimestampTime time.Time
 }
 
 type Content struct {
@@ -193,19 +194,27 @@ func writeAlbum(album *Album) error {
 	defer func() {
 		<-semaphore
 	}()
+
+	funcMap := template.FuncMap{
+		"timeFormat": func(t time.Time, f string) string {
+			return t.Format(f)
+		},
+	}
+
 	var perm os.FileMode = 0755
 	for i := range album.Photo {
 		album.Photo[i].Content.SetName()
 		album.Photo[i].Content.SetMediaUrlBase()
+		album.Photo[i].TimestampTime = time.Unix(album.Photo[i].Timestamp/1000, 0)
 		dirname := "albums/img/" + album.GphotoId
 		err := os.MkdirAll(dirname, perm)
 		if err != nil {
 			log.Print(err)
 			continue
 		}
-		go writeImage(album.Photo[i].Content.MediaUrlBase+"w197-h134-p/", dirname+"/"+album.Photo[i].Content.Name, album.Photo[i].Timestamp)
+		go writeImage(album.Photo[i].Content.MediaUrlBase+"w197-h134-p/", dirname+"/"+album.Photo[i].Content.Name, album.Photo[i].Updated)
 	}
-	t := template.Must(template.New("html").Parse(strings.Replace(html, "%v", li_photo, 1)))
+	t := template.Must(template.New("html").Funcs(funcMap).Parse(strings.Replace(html, "%v", li_photo, 1)))
 	filename := "albums/" + album.GphotoId + ".html"
 	perm = 0644
 	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
@@ -220,15 +229,18 @@ func writeAlbum(album *Album) error {
 	return err
 }
 
-func writeImage(url string, filename string, timestamp int64) (err error) {
+func writeImage(url string, filename string, updated string) (err error) {
 	semaphore <- 1
 	defer func() {
 		<-semaphore
 	}()
 	fi, err := os.Stat(filename)
 	if err == nil {
-		if fi.Size() > 0 && fi.ModTime().Sub(time.Unix(timestamp/1000, 0)) > 0 {
-			return
+		if fi.Size() > 0 {
+			t, _ := time.Parse("2006-01-02T15:04:05.000Z", updated)
+			if fi.ModTime().Sub(t) > 0 {
+				return
+			}
 		}
 	}
 	const perm os.FileMode = 0644
