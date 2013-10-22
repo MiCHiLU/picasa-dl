@@ -197,6 +197,15 @@ func (d debugT) Println(args ...interface{}) {
 	}
 }
 
+func GoroutineChannel(f func()) (receiver chan<- int) {
+	receiver = make(chan int)
+	go func() {
+		defer close(receiver)
+		f()
+	}()
+	return
+}
+
 func writeIndex(albums *Albums) error {
 	t := template.Must(template.New("html").Parse(strings.Replace(html, "%v", li_album, 1)))
 	filename := "albums/index.html"
