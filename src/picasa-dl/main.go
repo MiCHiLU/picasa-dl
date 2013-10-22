@@ -30,7 +30,8 @@ func (d debugT) Println(args ...interface{}) {
 
 var (
 	maxProcesses   = runtime.NumCPU()
-	semaphore      = make(chan int, maxProcesses*2)
+	semaphoreHTTP  = make(chan int, maxProcesses*2)
+	semaphoreFile  = make(chan int, maxProcesses*2)
 	workers        [](chan int)
 	monitorWorkers = make(chan (chan int))
 )
@@ -234,7 +235,7 @@ func (c *Content) SetMediaUrlBase() {
 func writeIndex(albums *Albums) error {
 	t := template.Must(template.New("html").Parse(strings.Replace(html, "%v", li_album, 1)))
 	filename := "albums/index.html"
-	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
+	f, err := OpenFile(filename)
 	if err != nil {
 		return err
 	}
@@ -272,7 +273,7 @@ func writeAlbum(album *Album) error {
 	}
 	t := template.Must(template.New("html").Funcs(funcMap).Parse(strings.Replace(html, "%v", li_photo, 1)))
 	filename := "albums/" + album.GphotoId + ".html"
-	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
+	f, err := OpenFile(filename)
 	if err != nil {
 		return err
 	}
@@ -294,7 +295,7 @@ func writeImage(url string, filename string, updated string) (err error) {
 			}
 		}
 	}
-	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
+	f, err := OpenFile(filename)
 	if err != nil {
 		log.Print(err)
 		return
@@ -316,10 +317,19 @@ func writeImage(url string, filename string, updated string) (err error) {
 	return
 }
 
-func HTTPGET(url string) (body []byte, err error) {
-	semaphore <- 0
+func OpenFile(filename string) (file *os.File, err error) {
+	semaphoreFile <- 0
 	defer func() {
-		<-semaphore
+		<-semaphoreFile
+	}()
+	file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
+	return
+}
+
+func HTTPGET(url string) (body []byte, err error) {
+	semaphoreHTTP <- 0
+	defer func() {
+		<-semaphoreHTTP
 	}()
 	resp, err := http.Get(url)
 	if err != nil {
