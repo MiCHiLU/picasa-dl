@@ -111,8 +111,8 @@ const li_photo = `
 `
 
 type Albums struct {
-	Updated string  `xml:"updated"`
-	Entry   []Entry `xml:"entry"`
+	//Updated string  `xml:"updated"`
+	Entry []Entry `xml:"entry"`
 }
 
 type Entry struct {
