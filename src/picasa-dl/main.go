@@ -18,12 +18,30 @@ const userId = "djmchl@gmail.com"
 const permDir os.FileMode = 0755
 const permFile os.FileMode = 0644
 
+var debug = debugT(false)
+
+type debugT bool
+
+func (d debugT) Println(args ...interface{}) {
+	if d {
+		log.Println(args...)
+	}
+}
 
 var (
 	maxProcesses = runtime.NumCPU()
 	semaphore    = make(chan int, maxProcesses*2)
 	workers      [](chan int)
 )
+
+func GoroutineChannel(f func()) (receiver chan int) {
+	receiver = make(chan int)
+	go func() {
+		defer close(receiver)
+		f()
+	}()
+	return
+}
 
 func addWorkers(f func()) {
 	workers = append(workers, GoroutineChannel(f))
@@ -202,25 +220,6 @@ func (c *Content) SetMediaUrlBase() {
 	if c.MediaUrlBase == "" {
 		c.MediaUrlBase = strings.Split(c.Src, c.Name)[0]
 	}
-	return
-}
-
-var debug = debugT(false)
-
-type debugT bool
-
-func (d debugT) Println(args ...interface{}) {
-	if d {
-		log.Println(args...)
-	}
-}
-
-func GoroutineChannel(f func()) (receiver chan int) {
-	receiver = make(chan int)
-	go func() {
-		defer close(receiver)
-		f()
-	}()
 	return
 }
 
