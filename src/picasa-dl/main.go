@@ -268,7 +268,9 @@ func writeAlbum(album *Album) error {
 			log.Print(err)
 			continue
 		}
-		go writeImage(album.Photo[i].Content.MediaUrlBase+"w197-h134-p/", dirname+"/"+album.Photo[i].Content.Name, album.Photo[i].Updated)
+		addWorkers(func() {
+			writeImage(album.Photo[i].Content.MediaUrlBase+"w197-h134-p/", dirname+"/"+album.Photo[i].Content.Name, album.Photo[i].Updated)
+		})
 	}
 	t := template.Must(template.New("html").Funcs(funcMap).Parse(strings.Replace(html, "%v", li_photo, 1)))
 	filename := "albums/" + album.GphotoId + ".html"
@@ -357,7 +359,9 @@ func getAlbums(userId string) Albums {
 			log.Print(err)
 			continue
 		}
-		go writeImage(albums.Entry[i].Thumbnail.MediaUrlBase+"/w197-h134-p/", dirname+"/"+albums.Entry[i].GphotoId+".jpg", albums.Entry[i].Updated)
+		addWorkers(func() {
+			writeImage(albums.Entry[i].Thumbnail.MediaUrlBase+"/w197-h134-p/", dirname+"/"+albums.Entry[i].GphotoId+".jpg", albums.Entry[i].Updated)
+		})
 	}
 	return albums
 }
