@@ -247,11 +247,6 @@ func writeIndex(albums *Albums) error {
 }
 
 func writeAlbum(album *Album) error {
-	semaphore <- 0
-	defer func() {
-		<-semaphore
-	}()
-
 	funcMap := template.FuncMap{
 		"timeFormat": func(t time.Time, f string) string {
 			return t.Format(f)
@@ -268,8 +263,11 @@ func writeAlbum(album *Album) error {
 			log.Print(err)
 			continue
 		}
+		url := album.Photo[i].Content.MediaUrlBase + "w197-h134-p/"
+		filename := dirname + "/" + album.Photo[i].Content.Name
+		updated := album.Photo[i].Updated
 		addWorkers(func() {
-			writeImage(album.Photo[i].Content.MediaUrlBase+"w197-h134-p/", dirname+"/"+album.Photo[i].Content.Name, album.Photo[i].Updated)
+			writeImage(url, filename, updated)
 		})
 	}
 	t := template.Must(template.New("html").Funcs(funcMap).Parse(strings.Replace(html, "%v", li_photo, 1)))
@@ -287,10 +285,6 @@ func writeAlbum(album *Album) error {
 }
 
 func writeImage(url string, filename string, updated string) (err error) {
-	semaphore <- 0
-	defer func() {
-		<-semaphore
-	}()
 	fi, err := os.Stat(filename)
 	if err == nil {
 		if fi.Size() > 0 {
@@ -323,6 +317,10 @@ func writeImage(url string, filename string, updated string) (err error) {
 }
 
 func HTTPGET(url string) (body []byte, err error) {
+	semaphore <- 0
+	defer func() {
+		<-semaphore
+	}()
 	resp, err := http.Get(url)
 	if err != nil {
 		return
@@ -359,8 +357,11 @@ func getAlbums(userId string) Albums {
 			log.Print(err)
 			continue
 		}
+		url := albums.Entry[i].Thumbnail.MediaUrlBase + "/w197-h134-p/"
+		filename := dirname + "/" + albums.Entry[i].GphotoId + ".jpg"
+		updated := albums.Entry[i].Updated
 		addWorkers(func() {
-			writeImage(albums.Entry[i].Thumbnail.MediaUrlBase+"/w197-h134-p/", dirname+"/"+albums.Entry[i].GphotoId+".jpg", albums.Entry[i].Updated)
+			writeImage(url, filename, updated)
 		})
 	}
 	return albums
