@@ -220,14 +220,15 @@ type Content struct {
 func (c *Content) SetName() {
 	if c.Name == "" {
 		bits := strings.Split(c.Src, "/")
-		c.Name = bits[len(bits)-1]
+		lenBits := len(bits)
+		c.Name = bits[lenBits-2] + "." + strings.Split(bits[lenBits-1], ".")[1]
 	}
 	return
 }
 
 func (c *Content) SetMediaUrlBase() {
 	if c.MediaUrlBase == "" {
-		c.MediaUrlBase = strings.Split(c.Src, c.Name)[0]
+		c.MediaUrlBase = c.Src[:strings.LastIndex(c.Src, "/")+1]
 	}
 	return
 }
