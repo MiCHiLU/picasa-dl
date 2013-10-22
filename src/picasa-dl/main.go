@@ -233,7 +233,6 @@ func writeAlbum(album *Album) error {
 		},
 	}
 
-	c := make(chan int)
 	for i := range album.Photo {
 		album.Photo[i].Content.SetName()
 		album.Photo[i].Content.SetMediaUrlBase()
