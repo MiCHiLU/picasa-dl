@@ -51,8 +51,12 @@ func GoroutineChannel(f func()) {
 			if runtime.NumGoroutine() < 100 {
 				break
 			}
+			trace.Println()
 			time.Sleep(sleep * time.Millisecond)
-			sleep = sleep * 2
+			trace.Println()
+			if sleep < 8192 { //128*2**6
+				sleep = sleep * 2
+			}
 		}
 	} else {
 		if rand.Intn(10) == 0 && runtime.NumGoroutine() > 100 {
