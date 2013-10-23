@@ -34,6 +34,12 @@ func (d debugT) Println(args ...interface{}) {
 	}
 }
 
+const (
+	maxGoroutine = 100
+	minSleep     = 128
+	maxSleep     = 8192 //128*2**6
+)
+
 var (
 	maxProcesses  = runtime.NumCPU()
 	memStats      runtime.MemStats
@@ -46,20 +52,20 @@ var (
 func GoroutineChannel(f func()) {
 	if waitGc == true {
 		waitGc = false
-		var sleep time.Duration = 128
+		var sleep time.Duration = minSleep
 		for {
-			if runtime.NumGoroutine() < 100 {
+			if runtime.NumGoroutine() < maxGoroutine {
 				break
 			}
 			trace.Println()
 			time.Sleep(sleep * time.Millisecond)
 			trace.Println()
-			if sleep < 8192 { //128*2**6
+			if sleep < maxSleep {
 				sleep = sleep * 2
 			}
 		}
 	} else {
-		if rand.Intn(10) == 0 && runtime.NumGoroutine() > 100 {
+		if rand.Intn(10) == 0 && runtime.NumGoroutine() > maxGoroutine {
 			runtime.ReadMemStats(&memStats)
 			develop.Println(memStats.Alloc, memStats.NumGC)
 			waitGc = true
