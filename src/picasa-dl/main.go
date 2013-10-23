@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"runtime"
@@ -38,11 +39,30 @@ var (
 	semaphoreHTTP      = make(chan int, maxProcesses*2)
 	semaphoreFile      = make(chan int, maxProcesses*2)
 	wg                 sync.WaitGroup
+	memStats           runtime.MemStats
+	waitGc             bool
 )
 
 func GoroutineChannel(f func()) {
 	debug.Println()
 	debug.Println()
+	if waitGc == true {
+		waitGc = false
+		for {
+			if runtime.NumGoroutine() < 100 {
+				break
+			}
+			runtime.ReadMemStats(&memStats)
+			debug.Println(memStats.Alloc, memStats.NumGC)
+			time.Sleep(1000 * time.Millisecond)
+		}
+	} else {
+		if rand.Intn(10) == 0 {
+			if runtime.NumGoroutine() < 100 {
+				waitGc = true
+			}
+		}
+	}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
