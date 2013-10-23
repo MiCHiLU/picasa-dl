@@ -36,11 +36,11 @@ func (d debugT) Println(args ...interface{}) {
 
 var (
 	maxProcesses  = runtime.NumCPU()
-	semaphoreHTTP = make(chan int, maxProcesses*2)
-	semaphoreFile = make(chan int, maxProcesses*2)
-	wg            sync.WaitGroup
 	memStats      runtime.MemStats
+	semaphoreFile = make(chan int, maxProcesses*2)
+	semaphoreHTTP = make(chan int, maxProcesses*2)
 	waitGc        bool
+	wg            sync.WaitGroup
 )
 
 func GoroutineChannel(f func()) {
