@@ -50,25 +50,34 @@ func GoroutineChannel(f func()) (receiver chan int) {
 }
 
 func addWorkers(f func()) {
-	//monitorWorkers <- GoroutineChannel(f)
-	f()
+	monitorWorkers <- GoroutineChannel(f)
+	//GoroutineChannel(f)
 }
 
-func _monitorWorkers() {
-	for {
-		worker := <-monitorWorkers
-		workers = append(workers, worker)
-	}
-}
+var waitWorkers = make(chan int, 1)
 
-func waitWorkers() {
+func _monitorWorkers(waitWorkers chan int) {
+	baseGoroutineNum := runtime.NumGoroutine()
 	for {
-		_, ok := <-workers[0]
-		if !ok {
-			if len(workers) <= 1 {
-				return
+		var worker chan int
+		if len(workers) > 0 {
+			worker = workers[0]
+		}
+		select {
+		case newWorker := <-monitorWorkers:
+			workers = append(workers, newWorker)
+		case _, ok := <-worker:
+			if !ok {
+				if len(workers) <= 1 {
+					debug.Println(runtime.NumGoroutine())
+					if runtime.NumGoroutine() <= baseGoroutineNum {
+						debug.Println(runtime.NumGoroutine())
+						<-waitWorkers
+						return
+					}
+				}
+				workers = workers[1:]
 			}
-			workers = workers[1:]
 		}
 	}
 }
@@ -397,7 +406,11 @@ func getAlbums(userId string) Albums {
 
 func main() {
 	runtime.GOMAXPROCS(maxProcesses)
-	go _monitorWorkers()
+	waitWorkers <- 0
+	go _monitorWorkers(waitWorkers)
+	defer func() {
+		waitWorkers <- 0
+	}()
 	albums := getAlbums(userId)
 	err := writeIndex(&albums)
 	if err != nil {
@@ -416,5 +429,4 @@ func main() {
 		xml.Unmarshal(body, &album)
 		addWorkers(func() { writeAlbum(&album) })
 	}
-	waitWorkers()
 }
