@@ -278,6 +278,7 @@ func writeAlbum(album *Album) error {
 		dirname := "albums/img/" + album.GphotoId
 		err := os.MkdirAll(dirname, permDir)
 		if err != nil {
+			develop.Println(err)
 			log.Print(err)
 			continue
 		}
@@ -325,11 +326,13 @@ func writeImage(url string, filename string, updated string) (err error) {
 		trace.Println()
 	}()
 	if err != nil {
+		develop.Println(err)
 		log.Print(err)
 		return
 	}
 	resp, err := http.Get(url)
 	if err != nil {
+		develop.Println(err)
 		log.Print(err)
 		return
 	}
@@ -338,6 +341,7 @@ func writeImage(url string, filename string, updated string) (err error) {
 	if err1 := f.Close(); err == nil {
 		err = err1
 		if err != nil {
+			develop.Println(err)
 			log.Print(err)
 		}
 	}
@@ -392,6 +396,7 @@ func FeedGet(userId string) (body []byte, err error) {
 func getAlbums(userId string) Albums {
 	body, err := FeedGet(userId)
 	if err != nil {
+		develop.Println(err)
 		log.Print(err)
 		os.Exit(1)
 	}
@@ -405,6 +410,7 @@ func getAlbums(userId string) Albums {
 		dirname := "albums/img/index"
 		err := os.MkdirAll(dirname, permDir)
 		if err != nil {
+			develop.Println(err)
 			log.Print(err)
 			continue
 		}
@@ -429,6 +435,7 @@ func main() {
 	albums := getAlbums(userId)
 	err := writeIndex(&albums)
 	if err != nil {
+		develop.Println(err)
 		log.Print(err)
 		os.Exit(1)
 	}
@@ -436,6 +443,7 @@ func main() {
 	for _, entry := range albums.Entry {
 		body, err := HTTPGET(entry.Link)
 		if err != nil {
+			develop.Println(err)
 			log.Print(err)
 			continue
 		}
