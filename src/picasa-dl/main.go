@@ -226,6 +226,7 @@ func writeIndex(albums *Albums) error {
 	filename := "albums/index.html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
+		debug.Println()
 		closer <- 0
 	}()
 	if err != nil {
@@ -267,6 +268,7 @@ func writeAlbum(album *Album) error {
 	filename := "albums/" + album.GphotoId + ".html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
+		debug.Println()
 		closer <- 0
 	}()
 	if err != nil {
@@ -292,6 +294,7 @@ func writeImage(url string, filename string, updated string) (err error) {
 	}
 	f, closer, err := OpenFile(filename)
 	defer func() {
+		debug.Println()
 		closer <- 0
 	}()
 	if err != nil {
@@ -316,11 +319,14 @@ func writeImage(url string, filename string, updated string) (err error) {
 }
 
 func OpenFile(filename string) (file *os.File, closer chan int, err error) {
+	debug.Println()
 	semaphoreFile <- 0
 	closer = make(chan int)
 	go func() {
+		debug.Println()
 		<-closer
 		close(closer)
+		debug.Println()
 		<-semaphoreFile
 	}()
 	file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
@@ -328,8 +334,10 @@ func OpenFile(filename string) (file *os.File, closer chan int, err error) {
 }
 
 func HTTPGET(url string) (body []byte, err error) {
+	debug.Println()
 	semaphoreHTTP <- 0
 	defer func() {
+		debug.Println()
 		<-semaphoreHTTP
 	}()
 	resp, err := http.Get(url)
