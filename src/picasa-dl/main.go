@@ -35,17 +35,15 @@ func (d debugT) Println(args ...interface{}) {
 }
 
 var (
-	maxProcesses       = runtime.NumCPU()
-	semaphoreHTTP      = make(chan int, maxProcesses*2)
-	semaphoreFile      = make(chan int, maxProcesses*2)
-	wg                 sync.WaitGroup
-	memStats           runtime.MemStats
-	waitGc             bool
+	maxProcesses  = runtime.NumCPU()
+	semaphoreHTTP = make(chan int, maxProcesses*2)
+	semaphoreFile = make(chan int, maxProcesses*2)
+	wg            sync.WaitGroup
+	memStats      runtime.MemStats
+	waitGc        bool
 )
 
 func GoroutineChannel(f func()) {
-	debug.Println()
-	debug.Println()
 	if waitGc == true {
 		waitGc = false
 		var sleep time.Duration = 128
@@ -53,13 +51,13 @@ func GoroutineChannel(f func()) {
 			if runtime.NumGoroutine() < 100 {
 				break
 			}
-			runtime.ReadMemStats(&memStats)
-			debug.Println(memStats.Alloc, memStats.NumGC)
 			time.Sleep(sleep * time.Millisecond)
 			sleep = sleep * 2
 		}
 	} else {
 		if rand.Intn(10) == 0 && runtime.NumGoroutine() > 100 {
+			runtime.ReadMemStats(&memStats)
+			debug.Println(memStats.Alloc, memStats.NumGC)
 			waitGc = true
 		}
 	}
@@ -68,11 +66,9 @@ func GoroutineChannel(f func()) {
 		defer wg.Done()
 		f()
 	}()
-	return
 }
 
 func addWorkers(f func()) {
-	debug.Println()
 	GoroutineChannel(f)
 }
 
@@ -246,7 +242,6 @@ func writeIndex(albums *Albums) error {
 	filename := "albums/index.html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
-		debug.Println()
 		closer <- 0
 	}()
 	if err != nil {
@@ -288,7 +283,6 @@ func writeAlbum(album *Album) error {
 	filename := "albums/" + album.GphotoId + ".html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
-		debug.Println()
 		closer <- 0
 	}()
 	if err != nil {
@@ -298,7 +292,8 @@ func writeAlbum(album *Album) error {
 	if err1 := f.Close(); err == nil {
 		err = err1
 	}
-	log.Println("writeAlbum: ", album.GphotoId)
+	log.Println("writeAlbum: ", album.GphotoId, runtime.NumGoroutine())
+	debug.Println(runtime.NumGoroutine())
 	return err
 }
 
@@ -314,7 +309,6 @@ func writeImage(url string, filename string, updated string) (err error) {
 	}
 	f, closer, err := OpenFile(filename)
 	defer func() {
-		debug.Println()
 		closer <- 0
 	}()
 	if err != nil {
@@ -334,19 +328,19 @@ func writeImage(url string, filename string, updated string) (err error) {
 			log.Print(err)
 		}
 	}
-	debug.Println(filename, written, runtime.NumGoroutine())
+	debug.Println(filename, written)
 	return
 }
 
 func OpenFile(filename string) (file *os.File, closer chan int, err error) {
-	debug.Println()
+	//debug.Println()
 	semaphoreFile <- 0
 	closer = make(chan int)
 	go func() {
-		debug.Println()
+		//debug.Println()
 		<-closer
 		close(closer)
-		debug.Println()
+		//debug.Println()
 		<-semaphoreFile
 	}()
 	file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
@@ -354,10 +348,8 @@ func OpenFile(filename string) (file *os.File, closer chan int, err error) {
 }
 
 func HTTPGET(url string) (body []byte, err error) {
-	debug.Println()
 	semaphoreHTTP <- 0
 	defer func() {
-		debug.Println()
 		<-semaphoreHTTP
 	}()
 	resp, err := http.Get(url)
@@ -409,11 +401,8 @@ func getAlbums(userId string) Albums {
 func main() {
 	start := time.Now()
 	runtime.GOMAXPROCS(maxProcesses)
-	debug.Println()
 	defer func() {
-		debug.Println()
 		wg.Wait()
-		debug.Println()
 		runtime.ReadMemStats(&memStats)
 		debug.Println(time.Now().Sub(start), memStats.Alloc, memStats.NumGC)
 	}()
