@@ -48,7 +48,7 @@ var (
 	wg            sync.WaitGroup
 )
 
-func GoroutineChannel(f func()) {
+func AddWaitGroup(f func()) {
 	if waitGc == true {
 		waitGc = false
 		var sleep time.Duration = minSleep
@@ -75,10 +75,6 @@ func GoroutineChannel(f func()) {
 		defer wg.Done()
 		f()
 	}()
-}
-
-func addWorkers(f func()) {
-	GoroutineChannel(f)
 }
 
 /* haml -f html5 -t ugly
@@ -288,7 +284,7 @@ func writeAlbum(album *Album) error {
 		url := album.Photo[i].Content.MediaUrlBase + "w197-h134-p/"
 		filename := dirname + "/" + album.Photo[i].Content.Name
 		updated := album.Photo[i].Updated
-		addWorkers(func() {
+		AddWaitGroup(func() {
 			writeImage(url, filename, updated)
 		})
 	}
@@ -415,7 +411,7 @@ func getAlbums(userId string) Albums {
 		url := albums.Entry[i].Thumbnail.MediaUrlBase + "/w197-h134-p/"
 		filename := dirname + "/" + albums.Entry[i].GphotoId + ".jpg"
 		updated := albums.Entry[i].Updated
-		addWorkers(func() {
+		AddWaitGroup(func() {
 			writeImage(url, filename, updated)
 		})
 	}
@@ -446,6 +442,6 @@ func main() {
 
 		var album Album
 		xml.Unmarshal(body, &album)
-		addWorkers(func() { writeAlbum(&album) })
+		AddWaitGroup(func() { writeAlbum(&album) })
 	}
 }
