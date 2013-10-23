@@ -44,13 +44,13 @@ var (
 	memStats      runtime.MemStats
 	semaphoreFile = make(chan int, maxProcesses*2)
 	semaphoreHTTP = make(chan int, maxProcesses*2)
-	waitGc        bool
+	waitWG        bool
 	wg            sync.WaitGroup
 )
 
 func AddWaitGroup(f func()) {
-	if waitGc == true {
-		waitGc = false
+	if waitWG == true {
+		waitWG = false
 		var sleep time.Duration = minSleep
 		for {
 			if runtime.NumGoroutine() < maxGoroutine {
@@ -67,7 +67,7 @@ func AddWaitGroup(f func()) {
 		if rand.Intn(10) == 0 && runtime.NumGoroutine() > maxGoroutine {
 			runtime.ReadMemStats(&memStats)
 			develop.Println(memStats.Alloc, memStats.NumGC)
-			waitGc = true
+			waitWG = true
 		}
 	}
 	wg.Add(1)
@@ -303,7 +303,7 @@ func writeAlbum(album *Album) error {
 	if err1 := f.Close(); err == nil {
 		err = err1
 	}
-	log.Println("writeAlbum: ", album.GphotoId, runtime.NumGoroutine())
+	develop.Println("writeAlbum: ", album.GphotoId, runtime.NumGoroutine())
 	develop.Println(runtime.NumGoroutine())
 	return err
 }
@@ -395,7 +395,7 @@ func getAlbums(userId string) Albums {
 		log.Print(err)
 		os.Exit(1)
 	}
-	log.Print("Got album feed")
+	develop.Println("Got album feed")
 
 	var albums Albums
 	xml.Unmarshal(body, &albums)
