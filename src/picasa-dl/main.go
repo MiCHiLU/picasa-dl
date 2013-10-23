@@ -48,19 +48,19 @@ func GoroutineChannel(f func()) {
 	debug.Println()
 	if waitGc == true {
 		waitGc = false
+		var sleep time.Duration = 128
 		for {
 			if runtime.NumGoroutine() < 100 {
 				break
 			}
 			runtime.ReadMemStats(&memStats)
 			debug.Println(memStats.Alloc, memStats.NumGC)
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(sleep * time.Millisecond)
+			sleep = sleep * 2
 		}
 	} else {
-		if rand.Intn(10) == 0 {
-			if runtime.NumGoroutine() < 100 {
-				waitGc = true
-			}
+		if rand.Intn(10) == 0 && runtime.NumGoroutine() > 100 {
+			waitGc = true
 		}
 	}
 	wg.Add(1)
