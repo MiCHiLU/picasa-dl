@@ -19,7 +19,8 @@ const userId = "djmchl@gmail.com"
 const permDir os.FileMode = 0755
 const permFile os.FileMode = 0644
 
-var debug = debugT(true)
+var trace = debugT(true)
+var develop = debugT(true)
 
 type debugT bool
 
@@ -56,7 +57,7 @@ func GoroutineChannel(f func()) {
 	} else {
 		if rand.Intn(10) == 0 && runtime.NumGoroutine() > 100 {
 			runtime.ReadMemStats(&memStats)
-			debug.Println(memStats.Alloc, memStats.NumGC)
+			develop.Println(memStats.Alloc, memStats.NumGC)
 			waitGc = true
 		}
 	}
@@ -241,7 +242,9 @@ func writeIndex(albums *Albums) error {
 	filename := "albums/index.html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
+		trace.Println()
 		closer <- 0
+		trace.Println()
 	}()
 	if err != nil {
 		return err
@@ -250,11 +253,12 @@ func writeIndex(albums *Albums) error {
 	if err1 := f.Close(); err == nil {
 		err = err1
 	}
-	debug.Println("writeIndex")
+	develop.Println("writeIndex")
 	return err
 }
 
 func writeAlbum(album *Album) error {
+	trace.Println()
 	funcMap := template.FuncMap{
 		"timeFormat": func(t time.Time, f string) string {
 			return t.Format(f)
@@ -262,6 +266,7 @@ func writeAlbum(album *Album) error {
 	}
 
 	for i := range album.Photo {
+		trace.Println(i)
 		album.Photo[i].Content.SetName()
 		album.Photo[i].Content.SetMediaUrlBase()
 		album.Photo[i].TimestampTime = time.Unix(album.Photo[i].Timestamp/1000, 0)
@@ -282,7 +287,9 @@ func writeAlbum(album *Album) error {
 	filename := "albums/" + album.GphotoId + ".html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
+		trace.Println()
 		closer <- 0
+		trace.Println()
 	}()
 	if err != nil {
 		return err
@@ -292,7 +299,7 @@ func writeAlbum(album *Album) error {
 		err = err1
 	}
 	log.Println("writeAlbum: ", album.GphotoId, runtime.NumGoroutine())
-	debug.Println(runtime.NumGoroutine())
+	develop.Println(runtime.NumGoroutine())
 	return err
 }
 
@@ -308,7 +315,9 @@ func writeImage(url string, filename string, updated string) (err error) {
 	}
 	f, closer, err := OpenFile(filename)
 	defer func() {
+		trace.Println()
 		closer <- 0
+		trace.Println()
 	}()
 	if err != nil {
 		log.Print(err)
@@ -327,29 +336,36 @@ func writeImage(url string, filename string, updated string) (err error) {
 			log.Print(err)
 		}
 	}
-	debug.Println(filename, written)
+	develop.Println(filename, written)
 	return
 }
 
 func OpenFile(filename string) (file *os.File, closer chan int, err error) {
-	//debug.Println()
+	trace.Println()
 	semaphoreFile <- 0
+	trace.Println()
 	closer = make(chan int)
 	go func() {
-		//debug.Println()
+		trace.Println()
 		<-closer
+		trace.Println()
 		close(closer)
-		//debug.Println()
+		trace.Println()
 		<-semaphoreFile
+		trace.Println()
 	}()
 	file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
 	return
 }
 
 func HTTPGET(url string) (body []byte, err error) {
+	trace.Println()
 	semaphoreHTTP <- 0
+	trace.Println()
 	defer func() {
+		trace.Println()
 		<-semaphoreHTTP
+		trace.Println()
 	}()
 	resp, err := http.Get(url)
 	if err != nil {
@@ -403,7 +419,7 @@ func main() {
 	defer func() {
 		wg.Wait()
 		runtime.ReadMemStats(&memStats)
-		debug.Println(time.Now().Sub(start), memStats.Alloc, memStats.NumGC)
+		develop.Println(time.Now().Sub(start), memStats.Alloc, memStats.NumGC)
 	}()
 	albums := getAlbums(userId)
 	err := writeIndex(&albums)
