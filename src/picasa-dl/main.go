@@ -305,7 +305,6 @@ func writeAlbum(album *Album) error {
 		err = err1
 	}
 	develop.Println("writeAlbum: ", album.GphotoId, runtime.NumGoroutine())
-	develop.Println(runtime.NumGoroutine())
 	return err
 }
 
