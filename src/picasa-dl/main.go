@@ -18,7 +18,7 @@ const userId = "djmchl@gmail.com"
 const permDir os.FileMode = 0755
 const permFile os.FileMode = 0644
 
-var debug = debugT(false)
+var debug = debugT(true)
 
 type debugT bool
 
@@ -252,7 +252,7 @@ func writeIndex(albums *Albums) error {
 	if err1 := f.Close(); err == nil {
 		err = err1
 	}
-	log.Print("writeIndex")
+	debug.Println("writeIndex")
 	return err
 }
 
@@ -328,7 +328,7 @@ func writeImage(url string, filename string, updated string) (err error) {
 			log.Print(err)
 		}
 	}
-	log.Println("writeImage: ", url, filename, written)
+	debug.Println(filename, written, runtime.NumGoroutine())
 	return
 }
 
