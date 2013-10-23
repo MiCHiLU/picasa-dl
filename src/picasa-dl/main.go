@@ -387,12 +387,15 @@ func getAlbums(userId string) Albums {
 }
 
 func main() {
+	start := time.Now()
 	runtime.GOMAXPROCS(maxProcesses)
 	debug.Println()
 	defer func() {
 		debug.Println()
 		wg.Wait()
 		debug.Println()
+		runtime.ReadMemStats(&memStats)
+		debug.Println(time.Now().Sub(start), memStats.Alloc, memStats.NumGC)
 	}()
 	albums := getAlbums(userId)
 	err := writeIndex(&albums)
