@@ -21,7 +21,6 @@ const (
 	minSleep                 = 128
 	permDir      os.FileMode = 0755
 	permFile     os.FileMode = 0644
-	userId                   = "djmchl@gmail.com"
 )
 
 type debugT bool
@@ -40,6 +39,7 @@ var (
 	develop = debugT(false)
 	trace   = debugT(false)
 
+	userID        = "sample.user"
 	maxProcesses  = runtime.NumCPU()
 	memStats      runtime.MemStats
 	semaphoreFile = make(chan int, maxProcesses*2)
@@ -47,6 +47,13 @@ var (
 	waitWG        bool
 	wg            sync.WaitGroup
 )
+
+func init() {
+	for _, val := range os.Args[1:] {
+		userID = val
+		break
+	}
+}
 
 func AddWaitGroup(f func()) {
 	if waitWG == true {
@@ -387,13 +394,13 @@ func HTTPGET(url string) (body []byte, err error) {
 	return
 }
 
-func FeedGet(userId string) (body []byte, err error) {
-	body, err = HTTPGET("https://picasaweb.google.com/data/feed/api/user/" + userId)
+func FeedGet(userID string) (body []byte, err error) {
+	body, err = HTTPGET("https://picasaweb.google.com/data/feed/api/user/" + userID)
 	return
 }
 
-func getAlbums(userId string) Albums {
-	body, err := FeedGet(userId)
+func getAlbums(userID string) Albums {
+	body, err := FeedGet(userID)
 	if err != nil {
 		develop.Println(err)
 		log.Print(err)
@@ -431,7 +438,7 @@ func main() {
 		runtime.ReadMemStats(&memStats)
 		develop.Println(time.Now().Sub(start), memStats.Alloc, memStats.NumGC)
 	}()
-	albums := getAlbums(userId)
+	albums := getAlbums(userID)
 	err := writeIndex(&albums)
 	if err != nil {
 		develop.Println(err)
