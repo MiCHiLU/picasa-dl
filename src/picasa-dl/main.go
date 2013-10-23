@@ -24,6 +24,10 @@ type debugT bool
 
 func (d debugT) Println(args ...interface{}) {
 	if d {
+		_, file, line, ok := runtime.Caller(1)
+		if ok {
+			args = append([]interface{}{file, line, ":"}, args...)
+		}
 		log.Println(args...)
 	}
 }
