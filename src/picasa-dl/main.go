@@ -19,8 +19,8 @@ const userId = "djmchl@gmail.com"
 const permDir os.FileMode = 0755
 const permFile os.FileMode = 0644
 
-var trace = debugT(true)
-var develop = debugT(true)
+var trace = debugT(false)
+var develop = debugT(false)
 
 type debugT bool
 
