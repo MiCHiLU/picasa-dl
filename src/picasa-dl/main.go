@@ -15,12 +15,14 @@ import (
 	"time"
 )
 
-const userId = "djmchl@gmail.com"
-const permDir os.FileMode = 0755
-const permFile os.FileMode = 0644
-
-var trace = debugT(false)
-var develop = debugT(false)
+const (
+	maxGoroutine             = 100
+	maxSleep                 = 8192 //128*2**6
+	minSleep                 = 128
+	permDir      os.FileMode = 0755
+	permFile     os.FileMode = 0644
+	userId                   = "djmchl@gmail.com"
+)
 
 type debugT bool
 
@@ -34,13 +36,10 @@ func (d debugT) Println(args ...interface{}) {
 	}
 }
 
-const (
-	maxGoroutine = 100
-	minSleep     = 128
-	maxSleep     = 8192 //128*2**6
-)
-
 var (
+	develop = debugT(false)
+	trace   = debugT(false)
+
 	maxProcesses  = runtime.NumCPU()
 	memStats      runtime.MemStats
 	semaphoreFile = make(chan int, maxProcesses*2)
