@@ -49,6 +49,7 @@ var (
 )
 
 func init() {
+	runtime.GOMAXPROCS(maxProcesses)
 	for _, val := range os.Args[1:] {
 		userID = val
 		break
@@ -432,12 +433,12 @@ func getAlbums(userID string) Albums {
 
 func main() {
 	start := time.Now()
-	runtime.GOMAXPROCS(maxProcesses)
 	defer func() {
 		wg.Wait()
 		runtime.ReadMemStats(&memStats)
 		develop.Println(time.Now().Sub(start), memStats.Alloc, memStats.NumGC)
 	}()
+
 	albums := getAlbums(userID)
 	err := writeIndex(&albums)
 	if err != nil {
