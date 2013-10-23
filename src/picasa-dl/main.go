@@ -10,6 +10,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 )
@@ -33,53 +34,26 @@ func (d debugT) Println(args ...interface{}) {
 }
 
 var (
-	maxProcesses   = runtime.NumCPU()
-	semaphoreHTTP  = make(chan int, maxProcesses*2)
-	semaphoreFile  = make(chan int, maxProcesses*2)
-	workers        [](chan int)
-	monitorWorkers = make(chan (chan int))
+	maxProcesses       = runtime.NumCPU()
+	semaphoreHTTP      = make(chan int, maxProcesses*2)
+	semaphoreFile      = make(chan int, maxProcesses*2)
+	wg                 sync.WaitGroup
 )
 
-func GoroutineChannel(f func()) (receiver chan int) {
-	receiver = make(chan int)
+func GoroutineChannel(f func()) {
+	debug.Println()
+	debug.Println()
+	wg.Add(1)
 	go func() {
-		defer close(receiver)
+		defer wg.Done()
 		f()
 	}()
 	return
 }
 
 func addWorkers(f func()) {
-	monitorWorkers <- GoroutineChannel(f)
-	//GoroutineChannel(f)
-}
-
-var waitWorkers = make(chan int, 1)
-
-func _monitorWorkers(waitWorkers chan int) {
-	baseGoroutineNum := runtime.NumGoroutine()
-	for {
-		var worker chan int
-		if len(workers) > 0 {
-			worker = workers[0]
-		}
-		select {
-		case newWorker := <-monitorWorkers:
-			workers = append(workers, newWorker)
-		case _, ok := <-worker:
-			if !ok {
-				if len(workers) <= 1 {
-					debug.Println(runtime.NumGoroutine())
-					if runtime.NumGoroutine() <= baseGoroutineNum {
-						debug.Println(runtime.NumGoroutine())
-						<-waitWorkers
-						return
-					}
-				}
-				workers = workers[1:]
-			}
-		}
-	}
+	debug.Println()
+	GoroutineChannel(f)
 }
 
 /* haml -f html5 -t ugly
@@ -406,10 +380,11 @@ func getAlbums(userId string) Albums {
 
 func main() {
 	runtime.GOMAXPROCS(maxProcesses)
-	waitWorkers <- 0
-	go _monitorWorkers(waitWorkers)
+	debug.Println()
 	defer func() {
-		waitWorkers <- 0
+		debug.Println()
+		wg.Wait()
+		debug.Println()
 	}()
 	albums := getAlbums(userId)
 	err := writeIndex(&albums)
