@@ -72,10 +72,16 @@ func AddWaitGroup(f func()) {
 			}
 		}
 	} else {
-		if rand.Intn(10) == 0 && runtime.NumGoroutine() > maxGoroutine {
-			runtime.ReadMemStats(&memStats)
-			develop.Println(memStats.Alloc, memStats.NumGC)
-			waitWG = true
+		if rand.Intn(10) == 0 {
+			numGoroutine := runtime.NumGoroutine()
+			if numGoroutine > maxGoroutine {
+				runtime.ReadMemStats(&memStats)
+				develop.Println(
+					"Alloc:", memStats.Alloc,
+					"NumGC:", memStats.NumGC,
+				)
+				waitWG = true
+			}
 		}
 	}
 	wg.Add(1)
