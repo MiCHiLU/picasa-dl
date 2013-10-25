@@ -72,6 +72,15 @@ func AddWaitGroup(f func()) {
 			trace.Println()
 			if sleep < maxSleep {
 				sleep = sleep * 2
+			} else {
+				if rand.Intn(10) == 0 {
+					develop.Println(
+						"break AddWaitGroup:",
+						"Sleep:", sleepTime,
+						"NumGoroutine:", numGoroutine,
+					)
+					break
+				}
 			}
 		}
 	} else {
