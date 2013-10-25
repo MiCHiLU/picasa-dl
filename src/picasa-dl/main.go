@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -29,15 +30,24 @@ func (d debugT) Println(args ...interface{}) {
 	if d {
 		_, file, line, ok := runtime.Caller(1)
 		if ok {
-			args = append([]interface{}{file, line, ":"}, args...)
+			if line > maxLineNumber {
+				maxLineNumber = line
+				maxLineDigits = len(fmt.Sprint(maxLineNumber))
+			}
+			args = append([]interface{}{
+				file,
+				fmt.Sprintf(fmt.Sprintf("%%%dd:", maxLineDigits), line),
+			}, args...)
 		}
 		log.Println(args...)
 	}
 }
 
 var (
-	develop = debugT(false)
-	trace   = debugT(false)
+	develop       = debugT(true)
+	trace         = debugT(true)
+	maxLineDigits int
+	maxLineNumber = 0
 
 	userID        = "sample.user"
 	maxProcesses  = runtime.NumCPU()
@@ -57,7 +67,9 @@ func init() {
 }
 
 func AddWaitGroup(f func()) {
+	trace.Println()
 	if waitWG == true {
+		trace.Println()
 		waitWG = false
 		var sleep time.Duration = minSleep
 		for {
@@ -66,7 +78,12 @@ func AddWaitGroup(f func()) {
 				break
 			}
 			sleepTime := sleep * time.Millisecond
-			develop.Println("Sleep:", sleepTime, "NumGoroutine:", numGoroutine)
+			develop.Println(
+				"Sleep:", sleepTime,
+				"NumGoroutine:", numGoroutine,
+				"semaphoreFile:", len(semaphoreFile),
+				"semaphoreHTTP:", len(semaphoreHTTP),
+			)
 			trace.Println()
 			time.Sleep(sleepTime)
 			trace.Println()
@@ -84,6 +101,7 @@ func AddWaitGroup(f func()) {
 			}
 		}
 	} else {
+		trace.Println()
 		if rand.Intn(10) == 0 {
 			numGoroutine := runtime.NumGoroutine()
 			if numGoroutine > maxGoroutine {
@@ -92,6 +110,8 @@ func AddWaitGroup(f func()) {
 					"Alloc:", memStats.Alloc,
 					"NumGC:", memStats.NumGC,
 					"NumGoroutine:", numGoroutine,
+					"semaphoreFile:", len(semaphoreFile),
+					"semaphoreHTTP:", len(semaphoreHTTP),
 				)
 				waitWG = true
 			}
@@ -274,14 +294,14 @@ func writeIndex(albums *Albums) error {
 	filename := "albums/index.html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
-		trace.Println()
 		closer <- 0
-		trace.Println()
 	}()
 	if err != nil {
 		return err
 	}
+	trace.Println()
 	err = t.Execute(f, albums)
+	trace.Println()
 	if err1 := f.Close(); err == nil {
 		err = err1
 	}
@@ -312,6 +332,7 @@ func writeAlbum(album *Album) error {
 		url := album.Photo[i].Content.MediaUrlBase + "w197-h134-p/"
 		filename := dirname + "/" + album.Photo[i].Content.Name
 		updated := album.Photo[i].Updated
+		trace.Println(i)
 		AddWaitGroup(func() {
 			writeImage(url, filename, updated)
 		})
@@ -320,14 +341,14 @@ func writeAlbum(album *Album) error {
 	filename := "albums/" + album.GphotoId + ".html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
-		trace.Println()
 		closer <- 0
-		trace.Println()
 	}()
 	if err != nil {
 		return err
 	}
+	trace.Println()
 	err = t.Execute(f, album)
+	trace.Println()
 	if err1 := f.Close(); err == nil {
 		err = err1
 	}
@@ -363,7 +384,10 @@ func writeImage(url string, filename string, updated string) (err error) {
 		return
 	}
 	defer resp.Body.Close()
+
+	trace.Println()
 	written, err := io.Copy(f, resp.Body)
+	trace.Println()
 	if err1 := f.Close(); err == nil {
 		err = err1
 		if err != nil {
@@ -381,13 +405,9 @@ func OpenFile(filename string) (file *os.File, closer chan int, err error) {
 	trace.Println()
 	closer = make(chan int)
 	go func() {
-		trace.Println()
 		<-closer
-		trace.Println()
 		close(closer)
-		trace.Println()
 		<-semaphoreFile
-		trace.Println()
 	}()
 	file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
 	return
@@ -398,19 +418,23 @@ func HTTPGET(url string) (body []byte, err error) {
 	semaphoreHTTP <- 0
 	trace.Println()
 	defer func() {
-		trace.Println()
 		<-semaphoreHTTP
-		trace.Println()
 	}()
+
+	trace.Println()
 	resp, err := http.Get(url)
+	trace.Println()
 	if err != nil {
 		return
 	}
+	trace.Println()
 	body, err = ioutil.ReadAll(resp.Body)
+	trace.Println()
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
+	trace.Println()
 	return
 }
 
