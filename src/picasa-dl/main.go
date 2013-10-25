@@ -79,6 +79,7 @@ func AddWaitGroup(f func()) {
 				develop.Println(
 					"Alloc:", memStats.Alloc,
 					"NumGC:", memStats.NumGC,
+					"NumGoroutine:", numGoroutine,
 				)
 				waitWG = true
 			}
