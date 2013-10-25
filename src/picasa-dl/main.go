@@ -61,11 +61,14 @@ func AddWaitGroup(f func()) {
 		waitWG = false
 		var sleep time.Duration = minSleep
 		for {
-			if runtime.NumGoroutine() < maxGoroutine {
+			numGoroutine := runtime.NumGoroutine()
+			if numGoroutine < maxGoroutine {
 				break
 			}
+			sleepTime := sleep * time.Millisecond
+			develop.Println("Sleep:", sleepTime, "NumGoroutine:", numGoroutine)
 			trace.Println()
-			time.Sleep(sleep * time.Millisecond)
+			time.Sleep(sleepTime)
 			trace.Println()
 			if sleep < maxSleep {
 				sleep = sleep * 2
