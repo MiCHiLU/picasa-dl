@@ -303,6 +303,7 @@ func writeIndex(albums *Albums) error {
 	err = t.Execute(f, albums)
 	trace.Println()
 	if err1 := f.Close(); err == nil {
+		develop.Println(err)
 		err = err1
 	}
 	develop.Println("writeIndex")
@@ -366,24 +367,32 @@ func writeImage(url string, filename string, updated string) (err error) {
 			}
 		}
 	}
-	f, closer, err := OpenFile(filename)
+
+	trace.Println()
+	semaphoreHTTP <- 0
+	trace.Println()
 	defer func() {
-		trace.Println()
-		closer <- 0
-		trace.Println()
+		<-semaphoreHTTP
 	}()
-	if err != nil {
-		develop.Println(err)
-		log.Print(err)
-		return
-	}
+	trace.Println()
 	resp, err := http.Get(url)
+	trace.Println()
 	if err != nil {
 		develop.Println(err)
 		log.Print(err)
 		return
 	}
 	defer resp.Body.Close()
+
+	f, closer, err := OpenFile(filename)
+	defer func() {
+		closer <- 0
+	}()
+	if err != nil {
+		develop.Println(err)
+		log.Print(err)
+		return
+	}
 
 	trace.Println()
 	written, err := io.Copy(f, resp.Body)
@@ -410,6 +419,9 @@ func OpenFile(filename string) (file *os.File, closer chan int, err error) {
 		<-semaphoreFile
 	}()
 	file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
+	if err != nil {
+		develop.Println(err)
+	}
 	return
 }
 
@@ -425,12 +437,14 @@ func HTTPGET(url string) (body []byte, err error) {
 	resp, err := http.Get(url)
 	trace.Println()
 	if err != nil {
+		develop.Println(err)
 		return
 	}
 	trace.Println()
 	body, err = ioutil.ReadAll(resp.Body)
 	trace.Println()
 	if err != nil {
+		develop.Println(err)
 		return
 	}
 	defer resp.Body.Close()
@@ -446,7 +460,6 @@ func FeedGet(userID string) (body []byte, err error) {
 func getAlbums(userID string) Albums {
 	body, err := FeedGet(userID)
 	if err != nil {
-		develop.Println(err)
 		log.Print(err)
 		os.Exit(1)
 	}
