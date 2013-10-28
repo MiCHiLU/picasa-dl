@@ -47,17 +47,29 @@ var (
 	maxLineDigits int
 	maxLineNumber = 0
 
-	userID        = "sample.user"
-	maxProcesses  = runtime.NumCPU()
-	memStats      runtime.MemStats
-	semaphoreFile = make(chan int, maxProcesses*2)
-	semaphoreHTTP = make(chan int, maxProcesses*2)
-	waitWG        bool
-	wg            sync.WaitGroup
+	maxProcesses       = runtime.NumCPU()
+	memStats           runtime.MemStats
+	semaphoreFile      chan int
+	semaphoreHTTP      chan int
+	semaphoreFileCount = maxProcesses * 2 * 2
+	semaphoreHTTPCount = maxProcesses * 2 * 2
+	userID             = "sample.user"
+	waitWG             bool
+	wg                 sync.WaitGroup
 )
 
 func init() {
 	runtime.GOMAXPROCS(maxProcesses)
+
+	if semaphoreFileCount > 8 {
+		semaphoreFileCount = 8
+	}
+	if semaphoreHTTPCount > 8 {
+		semaphoreHTTPCount = 8
+	}
+	semaphoreFile = make(chan int, semaphoreFileCount)
+	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
+
 	for _, val := range os.Args[1:] {
 		userID = val
 		break
