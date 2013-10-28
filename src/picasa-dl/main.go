@@ -43,6 +43,27 @@ func (d debugT) Println(args ...interface{}) {
 	}
 }
 
+func (d debugT) In(args ...interface{}) (c chan int) {
+	if d {
+		d.Println(args...)
+		c = make(chan int)
+		start := time.Now()
+		defer func() {
+			<-c
+			end := time.Now().Sub(start)
+			args = append(args, end)
+			d.Println(args...)
+		}()
+	}
+	return
+}
+
+func (d debugT) Out(c chan int) {
+	if d {
+		c <- 0
+	}
+}
+
 var (
 	develop       = debugT(true)
 	trace         = debugT(true)
@@ -434,7 +455,9 @@ func HTTPGET(url string) (body []byte, err error) {
 	}()
 
 	trace.Println()
+	c := trace.In()
 	resp, err := http.Get(url)
+	trace.Out(c)
 	trace.Println()
 	if err != nil {
 		develop.Println(err)
