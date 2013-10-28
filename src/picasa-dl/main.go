@@ -492,8 +492,10 @@ func main() {
 	start := time.Now()
 	defer func() {
 		wg.Wait()
-		runtime.ReadMemStats(&memStats)
-		develop.Println(time.Now().Sub(start), memStats.Alloc, memStats.NumGC)
+		develop.Do(func() {
+			runtime.ReadMemStats(&memStats)
+			develop.Println(time.Now().Sub(start), memStats.Alloc, memStats.NumGC)
+		})
 	}()
 
 	albums := getAlbums(userID)
