@@ -18,8 +18,6 @@ import (
 
 const (
 	maxGoroutine             = 100
-	maxSleep                 = 8192 //128*2**6
-	minSleep                 = 128
 	permDir      os.FileMode = 0755
 	permFile     os.FileMode = 0644
 )
@@ -71,36 +69,19 @@ func AddWaitGroup(f func()) {
 	if waitWG == true {
 		trace.Println()
 		waitWG = false
-		var sleep time.Duration = minSleep
 		for {
 			numGoroutine := runtime.NumGoroutine()
 			if numGoroutine < maxGoroutine {
 				break
 			}
-			sleepTime := sleep * time.Millisecond
 			develop.Println(
-				"Sleep:", sleepTime,
 				"NumGoroutine:", numGoroutine,
 				"semaphoreFile:", len(semaphoreFile),
 				"semaphoreHTTP:", len(semaphoreHTTP),
 			)
 			trace.Println()
-			time.Sleep(sleepTime)
+			runtime.Gosched()
 			trace.Println()
-			if sleep < maxSleep {
-				if rand.Intn(2) == 0 {
-					sleep = sleep * 2
-				}
-			} else {
-				if rand.Intn(10) == 0 {
-					develop.Println(
-						"break AddWaitGroup:",
-						"Sleep:", sleepTime,
-						"NumGoroutine:", numGoroutine,
-					)
-					break
-				}
-			}
 		}
 	} else {
 		trace.Println()
