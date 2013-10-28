@@ -48,8 +48,8 @@ func (d debugT) Do(f func()) {
 }
 
 var (
-	develop       = debugT(true)
-	trace         = debugT(true)
+	develop       = debugT(false)
+	trace         = debugT(false)
 	maxLineDigits int
 	maxLineNumber = 0
 
