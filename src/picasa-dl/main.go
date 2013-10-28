@@ -88,7 +88,9 @@ func AddWaitGroup(f func()) {
 			time.Sleep(sleepTime)
 			trace.Println()
 			if sleep < maxSleep {
-				sleep = sleep * 2
+				if rand.Intn(2) == 0 {
+					sleep = sleep * 2
+				}
 			} else {
 				if rand.Intn(10) == 0 {
 					develop.Println(
