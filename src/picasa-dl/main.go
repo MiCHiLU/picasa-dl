@@ -41,6 +41,12 @@ func (d debugT) Println(args ...interface{}) {
 	}
 }
 
+func (d debugT) Do(f func()) {
+	if d {
+		f()
+	}
+}
+
 var (
 	develop       = debugT(true)
 	trace         = debugT(true)
