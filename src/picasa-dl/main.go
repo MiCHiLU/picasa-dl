@@ -17,6 +17,9 @@ import (
 )
 
 const (
+	develop = debugT(false)
+	trace   = debugT(false)
+
 	maxGoroutine             = 100
 	permDir      os.FileMode = 0755
 	permFile     os.FileMode = 0644
@@ -48,16 +51,13 @@ func (d debugT) Do(f func()) {
 }
 
 var (
-	develop       = debugT(false)
-	trace         = debugT(false)
-	maxLineDigits int
-	maxLineNumber = 0
-
+	maxLineDigits      int
+	maxLineNumber      = 0
 	maxProcesses       = runtime.NumCPU()
 	memStats           runtime.MemStats
 	semaphoreFile      chan int
-	semaphoreHTTP      chan int
 	semaphoreFileCount = maxProcesses * 2 * 2
+	semaphoreHTTP      chan int
 	semaphoreHTTPCount = maxProcesses * 2 * 2
 	userID             = "sample.user"
 	waitWG             bool
