@@ -458,15 +458,14 @@ func FeedGet(userID string) (body []byte, err error) {
 	return
 }
 
-func getAlbums(userID string) Albums {
+func getAlbums(userID string) (albums Albums) {
 	body, err := FeedGet(userID)
 	if err != nil {
 		log.Print(err)
-		os.Exit(1)
+		return
 	}
 	develop.Println("Got album feed")
 
-	var albums Albums
 	xml.Unmarshal(body, &albums)
 	for i := range albums.Entry {
 		albums.Entry[i].SetLink()
@@ -494,8 +493,9 @@ func main() {
 		wg.Wait()
 		develop.Do(func() {
 			runtime.ReadMemStats(&memStats)
-			develop.Println(time.Now().Sub(start), memStats.Alloc, memStats.NumGC)
+			develop.Println(memStats.Alloc, memStats.NumGC)
 		})
+		log.Println("Finished:", time.Now().Sub(start))
 	}()
 
 	albums := getAlbums(userID)
@@ -503,7 +503,7 @@ func main() {
 	if err != nil {
 		develop.Println(err)
 		log.Print(err)
-		os.Exit(1)
+		return
 	}
 
 	for _, entry := range albums.Entry {
