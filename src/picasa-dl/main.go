@@ -133,6 +133,12 @@ func AddWaitGroup(f func()) {
 	}()
 }
 
+const indexhtml = `<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="refresh" content="0; URL=albums/index.html">
+</head>`
+
 /* haml -f html5 -t ugly
 !!! 5
 %html/
@@ -495,6 +501,21 @@ func getAlbums(userID string) (albums Albums) {
 	return albums
 }
 
+func writeRootIndex() (err error) {
+	filename := "index.html"
+	data := []byte(indexhtml)
+
+	fi, err := os.Stat(filename)
+	if err == nil {
+		if fi.Size() > 0 {
+			return
+		}
+	}
+
+	err = ioutil.WriteFile(filename, data, permFile)
+	return
+}
+
 func writeTWBS() (err error) {
 	fi, err := os.Stat(TWBSfilename)
 	if err == nil {
@@ -556,6 +577,7 @@ func main() {
 		log.Println("Finished:", time.Now().Sub(start))
 	}()
 
+	writeRootIndex()
 	writeTWBS()
 	albums := getAlbums(userID)
 	err := writeIndex(&albums)
