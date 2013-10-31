@@ -1,5 +1,7 @@
 package main
 
+// +build version_embedded
+
 import (
 	"encoding/xml"
 	"fmt"
@@ -20,6 +22,7 @@ const (
 	develop = debugT(false)
 	trace   = debugT(false)
 
+	majorVersion             = "1.0"
 	maxGoroutine             = 100
 	permDir      os.FileMode = 0755
 	permFile     os.FileMode = 0644
@@ -51,6 +54,7 @@ func (d debugT) Do(f func()) {
 }
 
 var (
+	buildAt            string
 	maxLineDigits      int
 	maxLineNumber      = 0
 	maxProcesses       = runtime.NumCPU()
@@ -60,6 +64,7 @@ var (
 	semaphoreHTTP      chan int
 	semaphoreHTTPCount = maxProcesses * 2 * 2
 	userID             = "sample.user"
+	version            string
 	waitWG             bool
 	wg                 sync.WaitGroup
 )
@@ -489,6 +494,7 @@ func getAlbums(userID string) (albums Albums) {
 
 func main() {
 	start := time.Now()
+	fmt.Printf("picasa-dl %v (%v, %v, %v/%v)\n", majorVersion, version, buildAt, runtime.GOOS, runtime.GOARCH)
 	defer func() {
 		wg.Wait()
 		develop.Do(func() {
