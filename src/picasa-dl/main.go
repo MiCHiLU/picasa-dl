@@ -22,7 +22,7 @@ const (
 	develop = debugT(false)
 	trace   = debugT(false)
 
-	majorVersion             = "1.0"
+	majorVersion             = "1.1dev"
 	maxGoroutine             = 100
 	permDir      os.FileMode = 0755
 	permFile     os.FileMode = 0644
