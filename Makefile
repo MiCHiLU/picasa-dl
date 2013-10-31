@@ -8,3 +8,13 @@ bin/$(PROJECT): src/$(PROJECT)/*.go
 race: bin/$(PROJECT)
 	go install -race $(PROJECT)
 
+all: src/$(PROJECT)/*.go
+	@failures="";\
+	for platform in $(PLATFORMS); do\
+	  echo GOOS=$${platform%/*} GOARCH=$${platform#*/} go install $(PROJECT);\
+	  GOOS=$${platform%/*} GOARCH=$${platform#*/} go install $(PROJECT) || failures="$$failures $$platform";\
+	done;\
+	if [ "$$failures" != "" ]; then\
+	  echo "*** FAILED on $$failures ***";\
+	  exit 1;\
+	fi
