@@ -19,6 +19,9 @@ all: src/$(PROJECT)/*.go
 	  echo "*** FAILED on $$failures ***";\
 	  exit 1;\
 	fi
+	cd bin && mkdir -p darwin_amd64 && cp -p $(PROJECT) darwin_amd64
+	cd bin && zip -FS $(PROJECT)-unix.zip [dfl]*/$(PROJECT)
+	cd bin && zip -FS $(PROJECT)-win.zip windows_*/$(PROJECT).exe
 
 clean:
-	rm -f ./bin/$(PROJECT)* ./bin/*/$(PROJECT)*
+	rm -f ./bin/$(PROJECT)* ./bin/*/$(PROJECT)* ./bin/*.zip
