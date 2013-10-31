@@ -26,6 +26,7 @@ const (
 	maxGoroutine             = 100
 	permDir      os.FileMode = 0755
 	permFile     os.FileMode = 0644
+	TWBSversion              = "3.0.1"
 )
 
 type debugT bool
@@ -67,6 +68,8 @@ var (
 	version            string
 	waitWG             bool
 	wg                 sync.WaitGroup
+	TWBSfilename       = fmt.Sprintf("bootstrap-%v.min.css", TWBSversion)
+	TWBSurl            = fmt.Sprintf("https://github.com/twbs/bootstrap/raw/v%v/dist/css/bootstrap.min.css", TWBSversion)
 )
 
 func init() {
@@ -134,14 +137,14 @@ func AddWaitGroup(f func()) {
 !!! 5
 %html/
 %head
- %link(href="../bootstrap-3.0.0.min.css" rel="stylesheet")
+ %link(href="../bootstrap-%v.min.css" rel="stylesheet")
 %body/
 .row %v
 */
 const html = `<!DOCTYPE html>
 <html>
 <head>
-<link href='../bootstrap-3.0.0.min.css' rel='stylesheet'>
+<link href='../bootstrap-%v.min.css' rel='stylesheet'>
 </head>
 <body>
 <div class='row'>%v</div>
@@ -296,7 +299,7 @@ func (c *Content) SetMediaUrlBase() {
 }
 
 func writeIndex(albums *Albums) error {
-	t := template.Must(template.New("html").Parse(strings.Replace(html, "%v", li_album, 1)))
+	t := template.Must(template.New("html").Parse(fmt.Sprintf(html, TWBSversion, li_album)))
 	filename := "albums/index.html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
@@ -344,7 +347,7 @@ func writeAlbum(album *Album) error {
 			writeImage(url, filename, updated)
 		})
 	}
-	t := template.Must(template.New("html").Funcs(funcMap).Parse(strings.Replace(html, "%v", li_photo, 1)))
+	t := template.Must(template.New("html").Funcs(funcMap).Parse(fmt.Sprintf(html, TWBSversion, li_photo)))
 	filename := "albums/" + album.GphotoId + ".html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
@@ -492,6 +495,55 @@ func getAlbums(userID string) (albums Albums) {
 	return albums
 }
 
+func writeTWBS() (err error) {
+	fi, err := os.Stat(TWBSfilename)
+	if err == nil {
+		if fi.Size() > 0 {
+			return
+		}
+	}
+
+	trace.Println()
+	semaphoreHTTP <- 0
+	trace.Println()
+	defer func() {
+		<-semaphoreHTTP
+	}()
+
+	trace.Println()
+	resp, err := http.Get(TWBSurl)
+	trace.Println()
+	if err != nil {
+		develop.Println(err)
+		log.Print(err)
+		return
+	}
+	defer resp.Body.Close()
+
+	f, closer, err := OpenFile(TWBSfilename)
+	defer func() {
+		closer <- 0
+	}()
+	if err != nil {
+		develop.Println(err)
+		log.Print(err)
+		return
+	}
+
+	trace.Println()
+	written, err := io.Copy(f, resp.Body)
+	trace.Println()
+	if err1 := f.Close(); err == nil {
+		err = err1
+		if err != nil {
+			develop.Println(err)
+			log.Print(err)
+		}
+	}
+	develop.Println(TWBSfilename, written)
+	return
+}
+
 func main() {
 	start := time.Now()
 	fmt.Printf("picasa-dl %v (%v, %v, %v/%v)\n", majorVersion, version, buildAt, runtime.GOOS, runtime.GOARCH)
@@ -504,6 +556,7 @@ func main() {
 		log.Println("Finished:", time.Now().Sub(start))
 	}()
 
+	writeTWBS()
 	albums := getAlbums(userID)
 	err := writeIndex(&albums)
 	if err != nil {
