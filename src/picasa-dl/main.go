@@ -383,6 +383,9 @@ func writeImage(url string, filename string, updated string) (err error) {
 		}
 	}
 
+	fmt.Println("Fetching", url)
+	defer fmt.Println("Fetched", url)
+
 	trace.Println()
 	semaphoreHTTP <- 0
 	trace.Println()
@@ -441,6 +444,9 @@ func OpenFile(filename string) (file *os.File, closer chan int, err error) {
 }
 
 func HTTPGET(url string) (body []byte, err error) {
+	fmt.Println("Fetching", url)
+	defer fmt.Println("Fetched", url)
+
 	trace.Println()
 	semaphoreHTTP <- 0
 	trace.Println()
@@ -512,6 +518,9 @@ func writeRootIndex() (err error) {
 		}
 	}
 
+	fmt.Println("Writing", filename)
+	defer fmt.Println("Wrote", filename)
+
 	err = ioutil.WriteFile(filename, data, permFile)
 	return
 }
@@ -523,6 +532,9 @@ func writeTWBS() (err error) {
 			return
 		}
 	}
+
+	fmt.Println("Downloading", TWBSfilename)
+	defer fmt.Println("Downloaded", TWBSfilename)
 
 	trace.Println()
 	semaphoreHTTP <- 0
