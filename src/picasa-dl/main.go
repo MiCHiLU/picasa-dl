@@ -62,6 +62,7 @@ var (
 	debug              bool
 	develop            debugT
 	distDir            string
+	interval           int
 	maxLineDigits      int
 	maxLineNumber      = 0
 	maxProcesses       = runtime.NumCPU()
@@ -89,6 +90,7 @@ func init() {
 	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
 
 	flag.BoolVar(&debug, "v", false, "print debug messages")
+	flag.IntVar(&interval, "i", 0, "interval")
 	flag.StringVar(&distDir, "d", "", "destination directory")
 	flag.StringVar(&userID, "u", defaultUserID, "user ID")
 	flag.Parse()
@@ -611,7 +613,7 @@ func chDir(path string) (err error) {
 	return
 }
 
-func main() {
+func process() {
 	start := time.Now()
 	fmt.Printf("picasa-dl %v (%v, %v, %v/%v)\n", majorVersion, version, buildAt, runtime.GOOS, runtime.GOARCH)
 	defer func() {
@@ -654,5 +656,15 @@ func main() {
 		var album Album
 		xml.Unmarshal(body, &album)
 		AddWaitGroup(func() { writeAlbum(&album) })
+	}
+}
+
+func main() {
+	process()
+	if interval > 0 {
+		for {
+			time.Sleep(time.Duration(interval) * time.Second)
+			process()
+		}
 	}
 }
