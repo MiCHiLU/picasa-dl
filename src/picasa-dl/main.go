@@ -56,7 +56,7 @@ func (d debugT) Do(f func()) {
 }
 
 var (
-	TWBSfilename       = fmt.Sprintf("bootstrap-%v.min.css", TWBSversion)
+	TWBSfilename       = "bootstrap.min.css"
 	TWBSurl            = fmt.Sprintf("https://github.com/twbs/bootstrap/raw/v%v/dist/css/bootstrap.min.css", TWBSversion)
 	buildAt            string
 	debug              bool
@@ -152,7 +152,7 @@ const indexhtml = `<!DOCTYPE html>
 %html/
 %head
  %meta(charset="UTF-8")
- %link(href="../bootstrap-%v.min.css" rel="stylesheet")
+ %link(href="../bootstrap.min.css" rel="stylesheet")
 %body/
 .row %v
 */
@@ -160,7 +160,7 @@ const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<link href='../bootstrap-%v.min.css' rel='stylesheet'>
+<link href='../bootstrap.min.css' rel='stylesheet'>
 </head>
 <body>
 <div class='row'>%v</div>
@@ -315,7 +315,7 @@ func (c *Content) SetMediaUrlBase() {
 }
 
 func writeIndex(albums *Albums) error {
-	t := template.Must(template.New("html").Parse(fmt.Sprintf(html, TWBSversion, li_album)))
+	t := template.Must(template.New("html").Parse(fmt.Sprintf(html, li_album)))
 	filename := "albums/index.html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
@@ -363,7 +363,7 @@ func writeAlbum(album *Album) error {
 			writeImage(url, filename, updated)
 		})
 	}
-	t := template.Must(template.New("html").Funcs(funcMap).Parse(fmt.Sprintf(html, TWBSversion, li_photo)))
+	t := template.Must(template.New("html").Funcs(funcMap).Parse(fmt.Sprintf(html, li_photo)))
 	filename := "albums/" + album.GphotoId + ".html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
