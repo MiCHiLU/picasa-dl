@@ -89,8 +89,8 @@ func init() {
 	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
 
 	flag.BoolVar(&debug, "v", false, "print debug messages")
-	flag.StringVar(&userID, "u", defaultUserID, "user ID")
 	flag.StringVar(&distDir, "d", "", "destination directory")
+	flag.StringVar(&userID, "u", defaultUserID, "user ID")
 	flag.Parse()
 
 	develop = debugT(debug)
