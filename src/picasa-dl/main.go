@@ -60,6 +60,7 @@ var (
 	TWBSfilename       = fmt.Sprintf("bootstrap-%v.min.css", TWBSversion)
 	TWBSurl            = fmt.Sprintf("https://github.com/twbs/bootstrap/raw/v%v/dist/css/bootstrap.min.css", TWBSversion)
 	buildAt            string
+	distDir            string
 	maxLineDigits      int
 	maxLineNumber      = 0
 	maxProcesses       = runtime.NumCPU()
@@ -87,6 +88,7 @@ func init() {
 	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
 
 	flag.StringVar(&userID, "u", defaultUserID, "user ID")
+	flag.StringVar(&distDir, "d", "", "destination directory")
 	flag.Parse()
 }
 
@@ -577,6 +579,38 @@ func writeTWBS() (err error) {
 	return
 }
 
+func isExistsDir(path string) (isExists bool, err error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		develop.Println(err)
+		return
+	}
+	isExists = fi.IsDir()
+	return
+}
+
+func chDir(path string) (err error) {
+	isExists, err := isExistsDir(path)
+	if err != nil {
+		return
+	}
+
+	if isExists == false {
+		err = os.MkdirAll(path, permDir)
+		if err != nil {
+			develop.Println(err)
+			return
+		}
+	}
+
+	err = os.Chdir(path)
+	if err != nil {
+		develop.Println(err)
+		return
+	}
+	return
+}
+
 func main() {
 	start := time.Now()
 	fmt.Printf("picasa-dl %v (%v, %v, %v/%v)\n", majorVersion, version, buildAt, runtime.GOOS, runtime.GOARCH)
@@ -590,6 +624,14 @@ func main() {
 	}()
 
 	var err error
+
+	if distDir != "" {
+		err = chDir(distDir)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	}
 
 	writeRootIndex()
 	writeTWBS()
