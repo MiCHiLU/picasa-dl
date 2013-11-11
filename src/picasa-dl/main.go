@@ -589,10 +589,12 @@ func main() {
 		log.Println("Finished:", time.Now().Sub(start))
 	}()
 
+	var err error
+
 	writeRootIndex()
 	writeTWBS()
 	albums := getAlbums(userID)
-	err := writeIndex(&albums)
+	err = writeIndex(&albums)
 	if err != nil {
 		develop.Println(err)
 		log.Print(err)
