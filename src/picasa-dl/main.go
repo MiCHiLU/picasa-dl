@@ -583,10 +583,11 @@ func writeTWBS() (err error) {
 	return
 }
 
-func isExistsDir(path string) (isExists bool, err error) {
+func isExistsDir(path string) (isExists bool) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		develop.Println(err)
+		isExists = false
 		return
 	}
 	isExists = fi.IsDir()
@@ -594,12 +595,7 @@ func isExistsDir(path string) (isExists bool, err error) {
 }
 
 func chDir(path string) (err error) {
-	isExists, err := isExistsDir(path)
-	if err != nil {
-		return
-	}
-
-	if isExists == false {
+	if isExistsDir(path) == false {
 		err = os.MkdirAll(path, permDir)
 		if err != nil {
 			develop.Println(err)
