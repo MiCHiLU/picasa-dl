@@ -22,11 +22,11 @@ const (
 	develop = debugT(false)
 	trace   = debugT(false)
 
-	majorVersion             = "1.1dev"
-	maxGoroutine             = 100
-	permDir      os.FileMode = 0755
-	permFile     os.FileMode = 0644
-	TWBSversion              = "3.0.1"
+	TWBSversion               = "3.0.1"
+	majorVersion              = "1.1dev"
+	maxGoroutine              = 100
+	permDir       os.FileMode = 0755
+	permFile      os.FileMode = 0644
 )
 
 type debugT bool
@@ -55,6 +55,8 @@ func (d debugT) Do(f func()) {
 }
 
 var (
+	TWBSfilename       = fmt.Sprintf("bootstrap-%v.min.css", TWBSversion)
+	TWBSurl            = fmt.Sprintf("https://github.com/twbs/bootstrap/raw/v%v/dist/css/bootstrap.min.css", TWBSversion)
 	buildAt            string
 	maxLineDigits      int
 	maxLineNumber      = 0
@@ -68,8 +70,6 @@ var (
 	version            string
 	waitWG             bool
 	wg                 sync.WaitGroup
-	TWBSfilename       = fmt.Sprintf("bootstrap-%v.min.css", TWBSversion)
-	TWBSurl            = fmt.Sprintf("https://github.com/twbs/bootstrap/raw/v%v/dist/css/bootstrap.min.css", TWBSversion)
 )
 
 func init() {
