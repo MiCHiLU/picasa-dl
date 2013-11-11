@@ -20,8 +20,7 @@ import (
 )
 
 const (
-	develop = debugT(false)
-	trace   = debugT(false)
+	trace = debugT(false)
 
 	TWBSversion               = "3.0.1"
 	defaultUserID             = "sample.user"
@@ -60,6 +59,8 @@ var (
 	TWBSfilename       = fmt.Sprintf("bootstrap-%v.min.css", TWBSversion)
 	TWBSurl            = fmt.Sprintf("https://github.com/twbs/bootstrap/raw/v%v/dist/css/bootstrap.min.css", TWBSversion)
 	buildAt            string
+	debug              bool
+	develop            debugT
 	distDir            string
 	maxLineDigits      int
 	maxLineNumber      = 0
@@ -87,9 +88,12 @@ func init() {
 	semaphoreFile = make(chan int, semaphoreFileCount)
 	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
 
+	flag.BoolVar(&debug, "v", false, "print debug messages")
 	flag.StringVar(&userID, "u", defaultUserID, "user ID")
 	flag.StringVar(&distDir, "d", "", "destination directory")
 	flag.Parse()
+
+	develop = debugT(debug)
 }
 
 func AddWaitGroup(f func()) {
