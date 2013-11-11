@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/xml"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -23,6 +24,7 @@ const (
 	trace   = debugT(false)
 
 	TWBSversion               = "3.0.1"
+	defaultUserID             = "sample.user"
 	majorVersion              = "1.1dev"
 	maxGoroutine              = 100
 	permDir       os.FileMode = 0755
@@ -66,7 +68,7 @@ var (
 	semaphoreFileCount = maxProcesses * 2 * 2
 	semaphoreHTTP      chan int
 	semaphoreHTTPCount = maxProcesses * 2 * 2
-	userID             = "sample.user"
+	userID             string
 	version            string
 	waitWG             bool
 	wg                 sync.WaitGroup
@@ -84,10 +86,8 @@ func init() {
 	semaphoreFile = make(chan int, semaphoreFileCount)
 	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
 
-	for _, val := range os.Args[1:] {
-		userID = val
-		break
-	}
+	flag.StringVar(&userID, "u", defaultUserID, "user ID")
+	flag.Parse()
 }
 
 func AddWaitGroup(f func()) {
