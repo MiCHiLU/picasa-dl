@@ -151,6 +151,7 @@ const indexhtml = `<!DOCTYPE html>
 !!! 5
 %html/
 %head
+ %meta(charset="UTF-8")
  %link(href="../bootstrap-%v.min.css" rel="stylesheet")
 %body/
 .row %v
@@ -158,6 +159,7 @@ const indexhtml = `<!DOCTYPE html>
 const html = `<!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <link href='../bootstrap-%v.min.css' rel='stylesheet'>
 </head>
 <body>
