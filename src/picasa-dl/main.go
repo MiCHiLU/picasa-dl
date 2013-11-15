@@ -24,7 +24,7 @@ const (
 
 	TWBSversion               = "3.0.1"
 	defaultUserID             = "sample.user"
-	majorVersion              = "1.2"
+	majorVersion              = "1.3dev"
 	maxGoroutine              = 100
 	permDir       os.FileMode = 0755
 	permFile      os.FileMode = 0644
