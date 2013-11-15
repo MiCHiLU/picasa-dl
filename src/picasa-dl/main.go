@@ -629,14 +629,6 @@ func process() {
 
 	var err error
 
-	if distDir != "" {
-		err = chDir(distDir)
-		if err != nil {
-			log.Print(err)
-			return
-		}
-	}
-
 	writeRootIndex()
 	writeTWBS()
 	albums := getAlbums(userID)
@@ -662,6 +654,14 @@ func process() {
 }
 
 func main() {
+	if distDir != "" {
+		err := chDir(distDir)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	}
+
 	process()
 	if interval > 0 {
 		for {
