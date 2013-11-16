@@ -17,6 +17,8 @@ import (
 	"sync"
 	"text/template"
 	"time"
+
+	"github.com/samuel/go-gettext/gettext"
 )
 
 const (
@@ -75,6 +77,7 @@ var (
 	version            string
 	waitWG             bool
 	wg                 sync.WaitGroup
+	catalog            *gettext.Catalog
 )
 
 func init() {
@@ -89,10 +92,24 @@ func init() {
 	semaphoreFile = make(chan int, semaphoreFileCount)
 	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
 
-	flag.BoolVar(&debug, "v", false, "print debug messages")
-	flag.IntVar(&interval, "i", 0, "interval")
-	flag.StringVar(&distDir, "d", "", "destination directory")
-	flag.StringVar(&userID, "u", defaultUserID, "user ID")
+	d, err := gettext.NewDomain("picasa-dl.go", "locale")
+	if err != nil {
+		develop.Println("Failed at NewDomain.")
+	}
+
+	//http://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
+	Lang := "ja_JP"
+	catalog = d.GetCatalog(Lang)
+	if catalog == gettext.NullCatalog {
+		develop.Do(func() {
+			develop.Println("Failed at GetCatalog.")
+		})
+	}
+
+	flag.BoolVar(&debug, "v", false, catalog.GetText("print debug messages"))
+	flag.IntVar(&interval, "i", 0, catalog.GetText("interval"))
+	flag.StringVar(&distDir, "d", "", catalog.GetText("destination directory"))
+	flag.StringVar(&userID, "u", defaultUserID, catalog.GetText("user ID"))
 	flag.Parse()
 
 	develop = debugT(debug)
