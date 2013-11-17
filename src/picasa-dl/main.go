@@ -93,18 +93,10 @@ func init() {
 	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
 
 	d, err := gettext.NewDomain("picasa-dl.go", "locale")
-	if err != nil {
-		develop.Println("Failed at NewDomain.")
-	}
 
 	//http://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
 	Lang := "ja_JP"
 	catalog = d.GetCatalog(Lang)
-	if catalog == gettext.NullCatalog {
-		develop.Do(func() {
-			develop.Println("Failed at GetCatalog.")
-		})
-	}
 
 	flag.BoolVar(&debug, "v", false, catalog.GetText("print debug messages"))
 	flag.IntVar(&interval, "i", 0, catalog.GetText("interval"))
@@ -113,6 +105,14 @@ func init() {
 	flag.Parse()
 
 	develop = debugT(debug)
+	if err != nil {
+		develop.Println(err)
+	}
+	if catalog == gettext.NullCatalog {
+		develop.Do(func() {
+			develop.Println("Failed at GetCatalog.")
+		})
+	}
 }
 
 func AddWaitGroup(f func()) {
