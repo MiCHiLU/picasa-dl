@@ -3,6 +3,7 @@ package main
 // +build version_embedded
 
 import (
+	"bytes"
 	"encoding/xml"
 	"flag"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 	"time"
 
 	"github.com/samuel/go-gettext/gettext"
+	"picasa-dl/locale"
 )
 
 const (
@@ -92,11 +94,27 @@ func init() {
 	semaphoreFile = make(chan int, semaphoreFileCount)
 	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
 
-	d, err := gettext.NewDomain("picasa-dl.go", "locale")
+	var err error
+	var mo []byte
+	var catalog *gettext.Catalog
+	var lang string
 
-	//http://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
-	Lang := "ja_JP"
-	catalog = d.GetCatalog(Lang)
+	//refs: http://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
+	for _, key := range []string{"LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"} {
+		lang = os.Getenv(key)
+		if lang != "" {
+			break
+		}
+	}
+	switch lang {
+	case "ja":
+		mo = ja_JP.Locale_ja_jp_lc_messages_picasa_dl_go_mo()
+	}
+	if mo != nil {
+		catalog, err = gettext.ParseMO(bytes.NewReader(mo))
+	} else {
+		catalog = gettext.NullCatalog
+	}
 
 	flag.BoolVar(&debug, "v", false, catalog.GetText("print debug messages"))
 	flag.IntVar(&interval, "i", 0, catalog.GetText("interval"))
@@ -105,10 +123,11 @@ func init() {
 	flag.Parse()
 
 	develop = debugT(debug)
+
 	if err != nil {
 		develop.Println(err)
 	}
-	if catalog == gettext.NullCatalog {
+	if catalog == nil || catalog == gettext.NullCatalog {
 		develop.Do(func() {
 			develop.Println("Failed at GetCatalog.")
 		})
