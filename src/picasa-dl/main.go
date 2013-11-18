@@ -7,6 +7,7 @@ import (
 	"encoding/xml"
 	"flag"
 	"fmt"
+	"image/jpeg"
 	"io"
 	"io/ioutil"
 	"log"
@@ -151,6 +152,18 @@ func getCatalog() (catalog *gettext.Catalog, err error) {
 		catalog, err = gettext.ParseMO(bytes.NewReader(mo))
 	} else {
 		catalog = gettext.NullCatalog
+	}
+	return
+}
+
+func tryDecode(filename string) (success bool, err error) {
+	file, err := os.Open(filename)
+	if err == nil {
+		defer file.Close()
+		_, err = jpeg.Decode(file)
+	}
+	if err == nil {
+		success = true
 	}
 	return
 }
@@ -445,7 +458,10 @@ func writeImage(url string, filename string, updated string) (err error) {
 		if fi.Size() > 0 {
 			t, _ := time.Parse("2006-01-02T15:04:05.000Z", updated)
 			if fi.ModTime().Sub(t) > 0 {
-				return
+				success, _ := tryDecode(filename)
+				if success {
+					return
+				}
 			}
 		}
 	}
