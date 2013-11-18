@@ -133,7 +133,12 @@ func main() {
 	}
 }
 
-func getCatalog() (catalog *gettext.Catalog, err error) {
+func getCatalog() (result *gettext.Catalog, err error) {
+	if catalog != nil {
+		result = catalog
+		return
+	}
+
 	var mo []byte
 	var lang string
 
@@ -153,6 +158,7 @@ func getCatalog() (catalog *gettext.Catalog, err error) {
 	} else {
 		catalog = gettext.NullCatalog
 	}
+	result = catalog
 	return
 }
 
@@ -246,7 +252,7 @@ const html = `<!DOCTYPE html>
     %h6(style="margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;")
      {{.Title}}
     %p.muted(style="font-size: 11px; margin-top: -10px; margin-bottom: -5px;")
-     写真{{.Numphotos}}枚
+     写真{{.Numphotos}}枚 -#photos
  %a.pull-right(href="https://plus.google.com/photos/{{.GphotoUser}}/albums/{{.GphotoId}}" style="color: #000; text-decoration: none; font-size: 13px; margin: -25px 9px 0 0;")
   -#%span.glyphicon.glyphicon-home
   G+
@@ -263,7 +269,7 @@ const li_album = `
 {{.Title}}
 </h6>
 <p class='muted' style='font-size: 11px; margin-top: -10px; margin-bottom: -5px;'>
-写真{{.Numphotos}}枚
+{{gettext "%d photos" .Numphotos}}
 </p>
 </div>
 </div>
@@ -274,6 +280,10 @@ G+
 </div>
 {{end}}
 `
+
+func markForCatalog() {
+	catalog.GetText("%d photos")
+}
 
 /* haml -f html5 -t ugly
 {{$GphotoId := .GphotoId}}
@@ -392,7 +402,13 @@ func (c *Content) SetMediaUrlBase() {
 }
 
 func writeIndex(albums *Albums) error {
-	t := template.Must(template.New("html").Parse(fmt.Sprintf(html, li_album)))
+	funcMap := template.FuncMap{
+		"gettext": func(format string, a ...interface{}) string {
+			return fmt.Sprintf(catalog.GetText(format), a...)
+		},
+	}
+
+	t := template.Must(template.New("html").Funcs(funcMap).Parse(fmt.Sprintf(html, li_album)))
 	filename := "albums/index.html"
 	f, closer, err := OpenFile(filename)
 	defer func() {

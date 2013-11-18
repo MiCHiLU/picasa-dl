@@ -33,3 +33,8 @@ msgstr "出力先ディレクトリ"
 msgid "user ID"
 msgstr "ユーザID"
 
+#: src/picasa-dl/main.go:285
+#, python-format
+msgid "%d photos"
+msgstr "写真%d枚"
+
