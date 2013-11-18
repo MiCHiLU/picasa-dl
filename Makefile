@@ -33,7 +33,7 @@ LOCALE=$(MO:.mo=.mogo)
 
 .SUFFIXES: .mo .mogo
 .mo.mogo:
-	./bin/go-bindata -func=Mo -out=$@ -pkg=ja $<
+	./bin/go-bindata -func=Mo -nomemcopy -out=$@ -pkg=ja $<
 	mkdir -p  $(LOCALEDIR)/ja
 	cp $@ $(LOCALEDIR)/ja/ja.go
 
