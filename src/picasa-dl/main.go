@@ -94,9 +94,28 @@ func init() {
 	semaphoreFile = make(chan int, semaphoreFileCount)
 	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
 
-	var err error
+	catalog, err := getCatalog()
+
+	flag.BoolVar(&debug, "v", false, catalog.GetText("print debug messages"))
+	flag.IntVar(&interval, "i", 0, catalog.GetText("interval"))
+	flag.StringVar(&distDir, "d", "", catalog.GetText("destination directory"))
+	flag.StringVar(&userID, "u", defaultUserID, catalog.GetText("user ID"))
+	flag.Parse()
+
+	develop = debugT(debug)
+
+	if err != nil {
+		develop.Println(err)
+	}
+	if catalog == nil || catalog == gettext.NullCatalog {
+		develop.Do(func() {
+			develop.Println("Failed at GetCatalog.")
+		})
+	}
+}
+
+func getCatalog() (catalog *gettext.Catalog, err error) {
 	var mo []byte
-	var catalog *gettext.Catalog
 	var lang string
 
 	//refs: http://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
@@ -115,23 +134,7 @@ func init() {
 	} else {
 		catalog = gettext.NullCatalog
 	}
-
-	flag.BoolVar(&debug, "v", false, catalog.GetText("print debug messages"))
-	flag.IntVar(&interval, "i", 0, catalog.GetText("interval"))
-	flag.StringVar(&distDir, "d", "", catalog.GetText("destination directory"))
-	flag.StringVar(&userID, "u", defaultUserID, catalog.GetText("user ID"))
-	flag.Parse()
-
-	develop = debugT(debug)
-
-	if err != nil {
-		develop.Println(err)
-	}
-	if catalog == nil || catalog == gettext.NullCatalog {
-		develop.Do(func() {
-			develop.Println("Failed at GetCatalog.")
-		})
-	}
+	return
 }
 
 func AddWaitGroup(f func()) {
