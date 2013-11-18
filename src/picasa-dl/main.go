@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/samuel/go-gettext/gettext"
-	"picasa-dl/locale"
+	"picasa-dl/locale/ja"
 )
 
 const (
@@ -108,7 +108,7 @@ func init() {
 	}
 	switch lang {
 	case "ja":
-		mo = ja_JP.Locale_ja_jp_lc_messages_picasa_dl_go_mo()
+		mo = ja.Mo()
 	}
 	if mo != nil {
 		catalog, err = gettext.ParseMO(bytes.NewReader(mo))

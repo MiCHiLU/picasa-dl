@@ -1,36 +1,50 @@
 PROJECT=picasa-dl
 PLATFORMS=darwin/386 darwin/amd64 freebsd/386 freebsd/amd64 freebsd/arm linux/386 linux/amd64 linux/arm windows/386 windows/amd64
-LOCALES=ja_JP
+LOCALES=ja
 
 go: bin/$(PROJECT)
 
-GO=$(wildcard src/$(PROJECT)/*.go)
-MAPPING=$(wildcard locale/*.go.mapping)
-$(MAPPING:.mapping=.pot): $(GO)
-POT=$(MAPPING:.mapping=.pot) $(MAPPING:.mapping=.pot)
-PO=$(wildcard locale/*/LC_MESSAGES/*.po)
-MO=$(PO:.po=.mo)
+PROJECTDIR=src/$(PROJECT)
+LOCALEDIR=$(PROJECTDIR)/locale
 
-.SUFFIXES: .po .mo
-.po.mo:
-	pybabel compile -d locale -D $(notdir $*)
+GO=$(wildcard $(PROJECTDIR)/*.go)
+MAPPING=$(wildcard $(LOCALEDIR)/*.go.mapping)
+POT=$(MAPPING:.mapping=.pot)
+PO=$(wildcard $(LOCALEDIR)/*/LC_MESSAGES/*.po)
+MO=$(PO:.po=.mo)
+LOCALE=$(MO:.mo=.mogo)
 
 .SUFFIXES: .mapping .pot
 .mapping.pot:
-	pybabel extract -k GetText -o $@ -F $< src/$(PROJECT)
-	for locale in $(LOCALES); do\
+	pybabel extract -k GetText -o $@ -F $< $(PROJECTDIR)
+	@for locale in $(LOCALES); do\
+		subcommand=init;\
 		if [ -e $(dir $@)$$locale/LC_MESSAGES/$(notdir $(basename $@)).po ]; then\
-			pybabel update -D $(notdir $*) -i $@ -d locale -l $$locale;\
-		else\
-			pybabel init   -D $(notdir $*) -i $@ -d locale -l $$locale;\
+			subcommand=update;\
 		fi;\
+		cmd="pybabel $$subcommand -D $(notdir $*) -i $@ -d $(LOCALEDIR) -l $$locale";\
+		echo $$cmd;\
+		$$cmd;\
 	done
 
-bin/$(PROJECT): $(GO)
+.SUFFIXES: .po .mo
+.po.mo:
+	pybabel compile -d $(LOCALEDIR) -D $(notdir $*)
+
+.SUFFIXES: .mo .mogo
+.mo.mogo:
+	./bin/go-bindata -func=Mo -out=$@ -pkg=ja $<
+	mkdir -p  $(LOCALEDIR)/ja
+	cp $@ $(LOCALEDIR)/ja/ja.go
+
+$(POT): $(GO)
+$(PO): $(POT)
+$(MO): $(POT)
+$(LOCALE): $(MO)
+
+bin/$(PROJECT): $(GO) $(LOCALE)
 	go fmt $<
 	go install -tags version_embedded -ldflags "-X main.version $$(git describe --always) -X main.buildAt '$$(LANG=en date -u +'%b %d %T %Y')'" $(PROJECT)
-
-mo: $(MAPPING) $(POT) $(MO)
 
 race: bin/$(PROJECT)
 	go install -race $(PROJECT)
