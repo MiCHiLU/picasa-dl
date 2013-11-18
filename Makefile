@@ -4,6 +4,7 @@ LOCALES=ja
 
 go: bin/$(PROJECT)
 
+VERSION=$(shell git describe --tag)
 PROJECTDIR=src/$(PROJECT)
 LOCALEDIR=$(PROJECTDIR)/locale
 PY_PACKAGES_DIR=python
@@ -63,8 +64,8 @@ all: $(GO) $(LOCALE)
 	  exit 1;\
 	fi
 	cd bin && mkdir -p darwin_amd64 && cp -p $(PROJECT) darwin_amd64
-	cd bin && zip -FS $(PROJECT)-unix.zip [dfl]*/$(PROJECT)
-	cd bin && zip -FS $(PROJECT)-win.zip windows_*/$(PROJECT).exe
+	cd bin && zip -FS $(PROJECT)-$(VERSION)-unix.zip [dfl]*/$(PROJECT)
+	cd bin && zip -FS $(PROJECT)-$(VERSION)-win.zip windows_*/$(PROJECT).exe
 
 clean:
 	rm -f $(POT) $(MO) $(LOCALE) ./bin/$(PROJECT)* ./bin/*/$(PROJECT)* ./bin/*.zip
