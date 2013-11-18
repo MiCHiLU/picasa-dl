@@ -65,4 +65,4 @@ all: src/$(PROJECT)/*.go
 	cd bin && zip -FS $(PROJECT)-win.zip windows_*/$(PROJECT).exe
 
 clean:
-	rm -f ./bin/$(PROJECT)* ./bin/*/$(PROJECT)* ./bin/*.zip
+	rm -f $(POT) $(MO) $(LOCALE) ./bin/$(PROJECT)* ./bin/*/$(PROJECT)* ./bin/*.zip
