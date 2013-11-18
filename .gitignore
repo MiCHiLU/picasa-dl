@@ -2,6 +2,7 @@ activate
 albums
 bin
 pkg
+python
 src/*.com
 src/picasa-dl/locale/picasa-dl.go.pot
 

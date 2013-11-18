@@ -6,6 +6,8 @@ go: bin/$(PROJECT)
 
 PROJECTDIR=src/$(PROJECT)
 LOCALEDIR=$(PROJECTDIR)/locale
+PY_PACKAGES_DIR=python
+BABEL=./bin/pybabel
 
 GO=$(wildcard $(PROJECTDIR)/*.go)
 MAPPING=$(wildcard $(LOCALEDIR)/*.go.mapping)
@@ -16,20 +18,20 @@ LOCALE=$(MO:.mo=.mogo)
 
 .SUFFIXES: .mapping .pot
 .mapping.pot:
-	pybabel extract -k GetText -o $@ -F $< $(PROJECTDIR)
+	$(BABEL) extract -k GetText -o $@ -F $< $(PROJECTDIR)
 	@for locale in $(LOCALES); do\
 		subcommand=init;\
 		if [ -e $(dir $@)$$locale/LC_MESSAGES/$(notdir $(basename $@)).po ]; then\
 			subcommand=update;\
 		fi;\
-		cmd="pybabel $$subcommand -D $(notdir $*) -i $@ -d $(LOCALEDIR) -l $$locale";\
+		cmd="$(BABEL) $$subcommand -D $(notdir $*) -i $@ -d $(LOCALEDIR) -l $$locale";\
 		echo $$cmd;\
 		$$cmd;\
 	done
 
 .SUFFIXES: .po .mo
 .po.mo:
-	pybabel compile -d $(LOCALEDIR) -D $(notdir $*)
+	$(BABEL) compile -d $(LOCALEDIR) -D $(notdir $*)
 
 .SUFFIXES: .mo .mogo
 .mo.mogo:
@@ -66,3 +68,6 @@ all: src/$(PROJECT)/*.go
 
 clean:
 	rm -f $(POT) $(MO) $(LOCALE) ./bin/$(PROJECT)* ./bin/*/$(PROJECT)* ./bin/*.zip
+
+setup:
+	pip install --use-mirrors -t $(PY_PACKAGES_DIR) -r packages.txt
