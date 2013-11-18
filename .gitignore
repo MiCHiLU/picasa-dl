@@ -3,15 +3,19 @@ albums
 bin
 pkg
 src/*.com
+src/picasa-dl/locale/picasa-dl.go.pot
 
 syntax: glob
 
 *.css
 *.html
 *.js
+*.mo
+*.mogo
 *.so
 *.sw?
 .DS_Store
+src/picasa-dl/locale/*/*.go
 tags
 
 syntax: regexp

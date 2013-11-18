@@ -3,6 +3,7 @@ package main
 // +build version_embedded
 
 import (
+	"bytes"
 	"encoding/xml"
 	"flag"
 	"fmt"
@@ -17,6 +18,9 @@ import (
 	"sync"
 	"text/template"
 	"time"
+
+	"github.com/samuel/go-gettext/gettext"
+	"picasa-dl/locale/ja"
 )
 
 const (
@@ -75,6 +79,7 @@ var (
 	version            string
 	waitWG             bool
 	wg                 sync.WaitGroup
+	catalog            *gettext.Catalog
 )
 
 func init() {
@@ -89,13 +94,65 @@ func init() {
 	semaphoreFile = make(chan int, semaphoreFileCount)
 	semaphoreHTTP = make(chan int, semaphoreHTTPCount)
 
-	flag.BoolVar(&debug, "v", false, "print debug messages")
-	flag.IntVar(&interval, "i", 0, "interval")
-	flag.StringVar(&distDir, "d", "", "destination directory")
-	flag.StringVar(&userID, "u", defaultUserID, "user ID")
+	catalog, err := getCatalog()
+
+	flag.BoolVar(&debug, "v", false, catalog.GetText("print debug messages"))
+	flag.IntVar(&interval, "i", 0, catalog.GetText("interval"))
+	flag.StringVar(&distDir, "d", "", catalog.GetText("destination directory"))
+	flag.StringVar(&userID, "u", defaultUserID, catalog.GetText("user ID"))
 	flag.Parse()
 
 	develop = debugT(debug)
+
+	if err != nil {
+		develop.Println(err)
+	}
+	if catalog == nil || catalog == gettext.NullCatalog {
+		develop.Do(func() {
+			develop.Println("Failed at GetCatalog.")
+		})
+	}
+}
+
+func main() {
+	if distDir != "" {
+		err := chDir(distDir)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	}
+
+	process()
+	if interval > 0 {
+		for {
+			time.Sleep(time.Duration(interval) * time.Second)
+			process()
+		}
+	}
+}
+
+func getCatalog() (catalog *gettext.Catalog, err error) {
+	var mo []byte
+	var lang string
+
+	//refs: http://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
+	for _, key := range []string{"LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"} {
+		lang = os.Getenv(key)
+		if lang != "" {
+			break
+		}
+	}
+	switch lang {
+	case "ja":
+		mo = ja.Mo()
+	}
+	if mo != nil {
+		catalog, err = gettext.ParseMO(bytes.NewReader(mo))
+	} else {
+		catalog = gettext.NullCatalog
+	}
+	return
 }
 
 func AddWaitGroup(f func()) {
@@ -328,8 +385,8 @@ func writeIndex(albums *Albums) error {
 	err = t.Execute(f, albums)
 	trace.Println()
 	if err1 := f.Close(); err == nil {
-		develop.Println(err)
 		err = err1
+		develop.Println(err)
 	}
 	develop.Println("writeIndex")
 	return err
@@ -650,23 +707,5 @@ func process() {
 		var album Album
 		xml.Unmarshal(body, &album)
 		AddWaitGroup(func() { writeAlbum(&album) })
-	}
-}
-
-func main() {
-	if distDir != "" {
-		err := chDir(distDir)
-		if err != nil {
-			log.Print(err)
-			return
-		}
-	}
-
-	process()
-	if interval > 0 {
-		for {
-			time.Sleep(time.Duration(interval) * time.Second)
-			process()
-		}
 	}
 }
