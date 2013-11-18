@@ -7,6 +7,7 @@ import (
 	"encoding/xml"
 	"flag"
 	"fmt"
+	"html/template"
 	"image/jpeg"
 	"io"
 	"io/ioutil"
@@ -17,7 +18,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"text/template"
 	"time"
 
 	"github.com/samuel/go-gettext/gettext"
