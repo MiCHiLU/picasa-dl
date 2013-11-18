@@ -51,7 +51,7 @@ bin/$(PROJECT): $(GO) $(LOCALE)
 race: bin/$(PROJECT)
 	go install -race $(PROJECT)
 
-all: src/$(PROJECT)/*.go
+all: $(GO) $(LOCALE)
 	make clean
 	@failures="";\
 	for platform in $(PLATFORMS); do\
