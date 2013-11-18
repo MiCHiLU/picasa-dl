@@ -114,6 +114,24 @@ func init() {
 	}
 }
 
+func main() {
+	if distDir != "" {
+		err := chDir(distDir)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	}
+
+	process()
+	if interval > 0 {
+		for {
+			time.Sleep(time.Duration(interval) * time.Second)
+			process()
+		}
+	}
+}
+
 func getCatalog() (catalog *gettext.Catalog, err error) {
 	var mo []byte
 	var lang string
@@ -689,23 +707,5 @@ func process() {
 		var album Album
 		xml.Unmarshal(body, &album)
 		AddWaitGroup(func() { writeAlbum(&album) })
-	}
-}
-
-func main() {
-	if distDir != "" {
-		err := chDir(distDir)
-		if err != nil {
-			log.Print(err)
-			return
-		}
-	}
-
-	process()
-	if interval > 0 {
-		for {
-			time.Sleep(time.Duration(interval) * time.Second)
-			process()
-		}
 	}
 }
