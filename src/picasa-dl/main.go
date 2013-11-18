@@ -247,6 +247,9 @@ const html = `<!DOCTYPE html>
      {{.Title}}
     %p.muted(style="font-size: 11px; margin-top: -10px; margin-bottom: -5px;")
      写真{{.Numphotos}}枚
+ %a.pull-right(href="https://plus.google.com/photos/{{.GphotoUser}}/albums/{{.GphotoId}}" style="color: #000; text-decoration: none; font-size: 13px; margin: -25px 9px 0 0;")
+  -#%span.glyphicon.glyphicon-home
+  G+
 {{end}}
 */
 const li_album = `
@@ -264,6 +267,9 @@ const li_album = `
 </p>
 </div>
 </div>
+</a>
+<a class='pull-right' href='https://plus.google.com/photos/{{.GphotoUser}}/albums/{{.GphotoId}}' style='color: #000; text-decoration: none; font-size: 13px; margin: -25px 9px 0 0;'>
+G+
 </a>
 </div>
 {{end}}
@@ -312,14 +318,15 @@ type Albums struct {
 }
 
 type Entry struct {
-	Updated   string `xml:"updated"`
-	Title     string `xml:"title"`
-	GphotoId  string `xml:"id"`
-	LinkList  []Link `xml:"link"`
-	Link      string
-	Numphotos int       `xml:"numphotos"`
-	Timestamp int64     `xml:"timestamp"`
-	Thumbnail Thumbnail `xml:"group>content"`
+	Updated    string `xml:"updated"`
+	Title      string `xml:"title"`
+	GphotoUser string `xml:"user"`
+	GphotoId   string `xml:"id"`
+	LinkList   []Link `xml:"link"`
+	Link       string
+	Numphotos  int       `xml:"numphotos"`
+	Timestamp  int64     `xml:"timestamp"`
+	Thumbnail  Thumbnail `xml:"group>content"`
 }
 
 func (e *Entry) SetLink() {
