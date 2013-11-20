@@ -433,6 +433,8 @@ func writeIndex(albums *Albums) error {
 	trace.Println()
 	if err1 := f.Close(); err == nil {
 		err = err1
+	}
+	if err != nil {
 		develop.Println(err)
 	}
 	develop.Println("writeIndex")
