@@ -103,8 +103,17 @@ func init() {
 	flag.BoolVar(&debug, "v", false, catalog.GetText("print debug messages"))
 	flag.IntVar(&interval, "i", 0, catalog.GetText("interval"))
 	flag.StringVar(&distDir, "d", "", catalog.GetText("destination directory"))
-	flag.StringVar(&userID, "u", defaultUserID, catalog.GetText("user ID"))
+	flag.Usage = func() {
+		fmt.Printf("Usage: %s [options] <User ID>\n\n", os.Args[0])
+		flag.PrintDefaults()
+	}
 	flag.Parse()
+	args := flag.Args()
+	if len(args) > 0 {
+		userID = args[0]
+	} else {
+		userID = defaultUserID
+	}
 
 	develop = debugT(debug)
 
