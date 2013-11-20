@@ -82,6 +82,7 @@ var (
 	version            string
 	waitWG             bool
 	wg                 sync.WaitGroup
+	wgFile             sync.WaitGroup
 	catalog            *gettext.Catalog
 )
 
@@ -123,6 +124,7 @@ func main() {
 	go func() {
 		for sig := range c {
 			develop.Println("os.Signal:", sig)
+			wgFile.Wait()
 			os.Exit(0)
 		}
 	}()
@@ -552,11 +554,14 @@ func OpenFile(filename string) (file *os.File, closer chan int, err error) {
 	closer = make(chan int)
 	go func() {
 		<-closer
+		wgFile.Done()
 		close(closer)
 		<-semaphoreFile
 	}()
 	file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, permFile)
-	if err != nil {
+	if err == nil {
+		wgFile.Add(1)
+	} else {
 		develop.Println(err)
 	}
 	return
