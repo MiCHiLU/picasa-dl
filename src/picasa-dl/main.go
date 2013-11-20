@@ -15,9 +15,11 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/samuel/go-gettext/gettext"
@@ -116,6 +118,15 @@ func init() {
 }
 
 func main() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		for sig := range c {
+			develop.Println("os.Signal:", sig)
+			os.Exit(0)
+		}
+	}()
+
 	if distDir != "" {
 		err := chDir(distDir)
 		if err != nil {
