@@ -611,7 +611,7 @@ func FeedGet(userID string) (body []byte, err error) {
 	return
 }
 
-func getAlbums(userID string) (albums Albums) {
+func getAlbums(userID string) (albums Albums, err error) {
 	body, err := FeedGet(userID)
 	if err != nil {
 		log.Print(err)
@@ -754,7 +754,10 @@ func process() {
 
 	writeRootIndex()
 	writeTWBS()
-	albums := getAlbums(userID)
+	albums, err := getAlbums(userID)
+	if err != nil {
+		return
+	}
 	err = writeIndex(&albums)
 	if err != nil {
 		develop.Println(err)
