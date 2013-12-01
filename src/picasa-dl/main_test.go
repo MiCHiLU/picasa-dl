@@ -8,6 +8,9 @@ import (
 )
 
 func TestEmptyIndex(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	basedir := "../.."
 	dirname := filepath.Join(basedir, "src/picasa-dl/test/empty_index")
 	cmd := exec.Command(filepath.Join(basedir, "bin/picasa-dl"), "-d="+dirname)

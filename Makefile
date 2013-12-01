@@ -48,9 +48,9 @@ $(LOCALE): $(MO)
 bin/$(PROJECT): $(GO) $(LOCALE)
 	go fmt $(PROJECT)
 	go install -tags version_embedded -ldflags "-X main.version $$(git describe --always) -X main.buildAt '$$(LANG=en date -u +'%b %d %T %Y')'" $(PROJECT)
-	go test $(PROJECT)
+	go test -test.short $(PROJECT)
 
-test: go
+test:
 	go test $(PROJECT)
 
 race: bin/$(PROJECT)
