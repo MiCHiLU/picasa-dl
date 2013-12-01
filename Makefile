@@ -46,13 +46,17 @@ $(MO): $(POT)
 $(LOCALE): $(MO)
 
 bin/$(PROJECT): $(GO) $(LOCALE)
-	go fmt $<
+	go fmt $(PROJECT)
 	go install -tags version_embedded -ldflags "-X main.version $$(git describe --always) -X main.buildAt '$$(LANG=en date -u +'%b %d %T %Y')'" $(PROJECT)
+	go test $(PROJECT)
+
+test: go
+	go test $(PROJECT)
 
 race: bin/$(PROJECT)
 	go install -race $(PROJECT)
 
-all: $(GO) $(LOCALE)
+all: $(GO) $(LOCALE) test
 	make clean
 	@failures="";\
 	for platform in $(PLATFORMS); do\
