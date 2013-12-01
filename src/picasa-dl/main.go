@@ -637,7 +637,7 @@ func getAlbums(userID string) (albums Albums) {
 			writeImage(url, filename, updated)
 		})
 	}
-	return albums
+	return
 }
 
 func writeRootIndex() (err error) {
