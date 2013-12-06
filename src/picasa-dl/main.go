@@ -162,16 +162,8 @@ func getCatalog() (result *gettext.Catalog, err error) {
 	}
 
 	var mo []byte
-	var lang string
 
-	//refs: http://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
-	for _, key := range []string{"LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"} {
-		lang = os.Getenv(key)
-		if lang != "" {
-			break
-		}
-	}
-	switch lang {
+	switch getLANGUAGE() {
 	case "ja":
 		mo = ja.Mo()
 	}
@@ -181,6 +173,18 @@ func getCatalog() (result *gettext.Catalog, err error) {
 		catalog = gettext.NullCatalog
 	}
 	result = catalog
+	return
+}
+
+func getLANGUAGE() (lang string) {
+	//refs: http://www.gnu.org/software/gettext/manual/html_node/Locale-Environment-Variables.html
+	for _, key := range []string{"LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"} {
+		lang = os.Getenv(key)
+		if lang != "" {
+			lang = strings.SplitN(lang, "_", 2)[0]
+			break
+		}
+	}
 	return
 }
 
