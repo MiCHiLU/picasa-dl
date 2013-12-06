@@ -142,7 +142,7 @@ func init() {
 	}
 	if catalog == nil || catalog == gettext.NullCatalog {
 		develop.Do(func() {
-			develop.Println("Failed at GetCatalog.")
+			develop.Println("Failed at GetCatalog.", "LANGUAGE: ", getLANGUAGE())
 		})
 	}
 }
