@@ -216,6 +216,13 @@ func tryDecode(filename string) (success bool, err error) {
 	}
 	if err == nil {
 		success = true
+	} else {
+		develop.Println(filename, err)
+		if fmt.Sprintf("%+v", err) != "EOF" {
+			success = true
+		} else {
+			develop.Println(filename, err, "return: ", success)
+		}
 	}
 	return
 }
