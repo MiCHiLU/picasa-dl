@@ -56,6 +56,26 @@ func (d debugT) Println(args ...interface{}) {
 	}
 }
 
+func (d debugT) Printf(format string, args ...interface{}) {
+	if d {
+		_, file, line, ok := runtime.Caller(1)
+		if ok {
+			if line > maxLineNumber {
+				maxLineNumber = line
+				maxLineDigits = len(fmt.Sprint(maxLineNumber))
+			}
+			args = []interface{}{
+				file,
+				fmt.Sprintf(fmt.Sprintf("%%%dd:", maxLineDigits), line),
+				fmt.Sprintf(format, args...),
+			}
+			log.Println(args...)
+		} else {
+			log.Printf(format, args...)
+		}
+	}
+}
+
 func (d debugT) Do(f func()) {
 	if d {
 		f()
