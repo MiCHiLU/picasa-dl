@@ -273,7 +273,7 @@ func AddWaitGroup(f func()) {
 const indexhtml = `<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="refresh" content="0; URL=albums/index.html">
+<meta http-equiv="refresh" content="0; URL=albums/html/index.html">
 </head>`
 
 /* haml -f html5 -t ugly
@@ -281,7 +281,7 @@ const indexhtml = `<!DOCTYPE html>
 %html/
 %head
  %meta(charset="UTF-8")
- %link(href="../bootstrap.min.css" rel="stylesheet")
+ %link(href="../../bootstrap.min.css" rel="stylesheet")
 %body/
 .row %v
 */
@@ -289,7 +289,7 @@ const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<link href='../bootstrap.min.css' rel='stylesheet'>
+<link href='../../bootstrap.min.css' rel='stylesheet'>
 </head>
 <body>
 <div class='row'>%v</div>
@@ -300,7 +300,7 @@ const html = `<!DOCTYPE html>
 .col-sm-4.col-md-2
  %a(href="{{.GphotoId}}.html" style="color: #000; text-decoration: none;")
   .thumbnail(style="width: 197px; margin: 3px 0 0 3px;")
-   %img(src="photos/index/{{.GphotoId}}.jpg")
+   %img(src="../photos/index/{{.GphotoId}}.jpg")
    .caption
     %h6(style="margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;")
      {{.Title}}
@@ -316,7 +316,7 @@ const li_album = `
 <div class='col-sm-4 col-md-2'>
 <a href='{{.GphotoId}}.html' style='color: #000; text-decoration: none;'>
 <div class='thumbnail' style='width: 197px; margin: 3px 0 0 3px;'>
-<img src='photos/index/{{.GphotoId}}.jpg'>
+<img src='../photos/index/{{.GphotoId}}.jpg'>
 <div class='caption'>
 <h6 style='margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;'>
 {{.Title}}
@@ -343,7 +343,7 @@ func markForCatalog() {
 {{range .Photo}}
 .col-sm-4.col-md-2
  .thumbnail(style="width: 197px; margin: 3px 0 0 3px;")
-  %img(src="photos/{{$GphotoId}}/{{.Content.Name}}")
+  %img(src="../photos/{{$GphotoId}}/{{.Content.Name}}")
   %h6(style="margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;")
    {{.Title}}
    %span.muted {{timeFormat .TimestampTime "2006-01-02T15:04:05"}}
@@ -359,7 +359,7 @@ const li_photo = `
 {{range .Photo}}
 <div class='col-sm-4 col-md-2'>
 <div class='thumbnail' style='width: 197px; margin: 3px 0 0 3px;'>
-<img src='photos/{{$GphotoId}}/{{.Content.Name}}'>
+<img src='../photos/{{$GphotoId}}/{{.Content.Name}}'>
 <h6 style='margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;'>
 {{.Title}}
 <span class='muted'>{{timeFormat .TimestampTime "2006-01-02T15:04:05"}}</span>
@@ -460,9 +460,16 @@ func writeIndex(albums *Albums) error {
 			return fmt.Sprintf(catalog.GetText(format), a...)
 		},
 	}
-
 	t := template.Must(template.New("html").Funcs(funcMap).Parse(fmt.Sprintf(html, li_album)))
-	filename := "albums/index.html"
+
+	dirname := "albums/html"
+	err := os.MkdirAll(dirname, permDir)
+	if err != nil {
+		develop.Println(err)
+		log.Print(err)
+		return err
+	}
+	filename := "albums/html/index.html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
 		closer <- 0
@@ -512,7 +519,7 @@ func writeAlbum(album *Album) error {
 		})
 	}
 	t := template.Must(template.New("html").Funcs(funcMap).Parse(fmt.Sprintf(html, li_photo)))
-	filename := "albums/" + album.GphotoId + ".html"
+	filename := "albums/html/" + album.GphotoId + ".html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
 		closer <- 0
