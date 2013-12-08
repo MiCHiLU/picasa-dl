@@ -273,7 +273,7 @@ func AddWaitGroup(f func()) {
 const indexhtml = `<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="refresh" content="0; URL=albums/html/index.html">
+<meta http-equiv="refresh" content="0; URL=html/index.html">
 </head>`
 
 /* haml -f html5 -t ugly
@@ -281,7 +281,7 @@ const indexhtml = `<!DOCTYPE html>
 %html/
 %head
  %meta(charset="UTF-8")
- %link(href="../../bootstrap.min.css" rel="stylesheet")
+ %link(href="../bootstrap.min.css" rel="stylesheet")
 %body/
 .row %v
 */
@@ -289,7 +289,7 @@ const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<link href='../../bootstrap.min.css' rel='stylesheet'>
+<link href='../bootstrap.min.css' rel='stylesheet'>
 </head>
 <body>
 <div class='row'>%v</div>
@@ -462,14 +462,14 @@ func writeIndex(albums *Albums) error {
 	}
 	t := template.Must(template.New("html").Funcs(funcMap).Parse(fmt.Sprintf(html, li_album)))
 
-	dirname := "albums/html"
+	dirname := "html"
 	err := os.MkdirAll(dirname, permDir)
 	if err != nil {
 		develop.Println(err)
 		log.Print(err)
 		return err
 	}
-	filename := "albums/html/index.html"
+	filename := "html/index.html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
 		closer <- 0
@@ -503,7 +503,7 @@ func writeAlbum(album *Album) error {
 		album.Photo[i].Content.SetName()
 		album.Photo[i].Content.SetMediaUrlBase()
 		album.Photo[i].TimestampTime = time.Unix(album.Photo[i].Timestamp/1000, 0)
-		dirname := "albums/photos/" + album.GphotoId
+		dirname := "photos/" + album.GphotoId
 		err := os.MkdirAll(dirname, permDir)
 		if err != nil {
 			develop.Println(err)
@@ -519,7 +519,7 @@ func writeAlbum(album *Album) error {
 		})
 	}
 	t := template.Must(template.New("html").Funcs(funcMap).Parse(fmt.Sprintf(html, li_photo)))
-	filename := "albums/html/" + album.GphotoId + ".html"
+	filename := "html/" + album.GphotoId + ".html"
 	f, closer, err := OpenFile(filename)
 	defer func() {
 		closer <- 0
@@ -660,7 +660,7 @@ func getAlbums(userID string) (albums Albums, err error) {
 	for i := range albums.Entry {
 		albums.Entry[i].SetLink()
 		albums.Entry[i].Thumbnail.SetMediaUrlBase()
-		dirname := "albums/photos/index"
+		dirname := "photos/index"
 		err := os.MkdirAll(dirname, permDir)
 		if err != nil {
 			develop.Println(err)
