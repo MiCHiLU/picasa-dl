@@ -18,12 +18,12 @@ func TestEmptyIndex(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
-	filename := filepath.Join(dirname, "sample.user/albums/index.html")
+	filename := filepath.Join(dirname, "html/index.html")
 	fi, err := os.Stat(filename)
 	if err != nil {
 		t.Error(err)
 	}
-	if fi.Size() != 1524 {
+	if fi.Size() != 1540 {
 		t.Error(filename, "file size:", fi.Size())
 	}
 }
