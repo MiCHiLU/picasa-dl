@@ -2,6 +2,8 @@ PROJECT=picasa-dl
 PLATFORMS=darwin/386 darwin/amd64 freebsd/386 freebsd/amd64 freebsd/arm linux/386 linux/amd64 linux/arm windows/386 windows/amd64
 LOCALES=ja
 
+.PHONY: all clean test
+
 go: bin/$(PROJECT)
 
 VERSION=$(shell git describe --tag)
