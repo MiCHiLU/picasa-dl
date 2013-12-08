@@ -1,5 +1,4 @@
 activate
-albums
 bin
 pkg
 python
@@ -8,9 +7,6 @@ src/picasa-dl/locale/picasa-dl.go.pot
 
 syntax: glob
 
-*.css
-*.html
-*.js
 *.mo
 *.mogo
 *.so
