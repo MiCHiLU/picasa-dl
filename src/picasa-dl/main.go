@@ -300,7 +300,7 @@ const html = `<!DOCTYPE html>
 .col-sm-4.col-md-2
  %a(href="{{.GphotoId}}.html" style="color: #000; text-decoration: none;")
   .thumbnail(style="width: 197px; margin: 3px 0 0 3px;")
-   %img(src="img/index/{{.GphotoId}}.jpg")
+   %img(src="photos/index/{{.GphotoId}}.jpg")
    .caption
     %h6(style="margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;")
      {{.Title}}
@@ -316,7 +316,7 @@ const li_album = `
 <div class='col-sm-4 col-md-2'>
 <a href='{{.GphotoId}}.html' style='color: #000; text-decoration: none;'>
 <div class='thumbnail' style='width: 197px; margin: 3px 0 0 3px;'>
-<img src='img/index/{{.GphotoId}}.jpg'>
+<img src='photos/index/{{.GphotoId}}.jpg'>
 <div class='caption'>
 <h6 style='margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;'>
 {{.Title}}
@@ -343,7 +343,7 @@ func markForCatalog() {
 {{range .Photo}}
 .col-sm-4.col-md-2
  .thumbnail(style="width: 197px; margin: 3px 0 0 3px;")
-  %img(src="img/{{$GphotoId}}/{{.Content.Name}}")
+  %img(src="photos/{{$GphotoId}}/{{.Content.Name}}")
   %h6(style="margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;")
    {{.Title}}
    %span.muted {{timeFormat .TimestampTime "2006-01-02T15:04:05"}}
@@ -359,7 +359,7 @@ const li_photo = `
 {{range .Photo}}
 <div class='col-sm-4 col-md-2'>
 <div class='thumbnail' style='width: 197px; margin: 3px 0 0 3px;'>
-<img src='img/{{$GphotoId}}/{{.Content.Name}}'>
+<img src='photos/{{$GphotoId}}/{{.Content.Name}}'>
 <h6 style='margin-top: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;'>
 {{.Title}}
 <span class='muted'>{{timeFormat .TimestampTime "2006-01-02T15:04:05"}}</span>
@@ -496,7 +496,7 @@ func writeAlbum(album *Album) error {
 		album.Photo[i].Content.SetName()
 		album.Photo[i].Content.SetMediaUrlBase()
 		album.Photo[i].TimestampTime = time.Unix(album.Photo[i].Timestamp/1000, 0)
-		dirname := "albums/img/" + album.GphotoId
+		dirname := "albums/photos/" + album.GphotoId
 		err := os.MkdirAll(dirname, permDir)
 		if err != nil {
 			develop.Println(err)
@@ -653,7 +653,7 @@ func getAlbums(userID string) (albums Albums, err error) {
 	for i := range albums.Entry {
 		albums.Entry[i].SetLink()
 		albums.Entry[i].Thumbnail.SetMediaUrlBase()
-		dirname := "albums/img/index"
+		dirname := "albums/photos/index"
 		err := os.MkdirAll(dirname, permDir)
 		if err != nil {
 			develop.Println(err)
